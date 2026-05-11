@@ -164,15 +164,15 @@ impl FromStr for Vls {
 impl Display for Vls {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::Any => write!(f, "*"),
+            Self::Any => f.write_str("*"),
             Self::Constraints(constraints) => {
-                let mut first = true;
-                for c in constraints {
-                    if !first {
+                let mut iter = constraints.iter();
+                if let Some(first) = iter.next() {
+                    first.fmt(f)?;
+                    for c in iter {
                         f.write_str("|")?;
+                        c.fmt(f)?;
                     }
-                    first = false;
-                    c.fmt(f)?;
                 }
                 Ok(())
             }
