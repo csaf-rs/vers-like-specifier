@@ -5,7 +5,7 @@ use std::str::FromStr;
 use thiserror::Error;
 
 /// A single version constraint pairing a [`Comparator`] with a validated [`VersionString`].
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct VersionConstraint {
     comparator: Comparator,
     version: VersionString,
