@@ -8,6 +8,7 @@ repository = "https://github.com/csaf-rs/vls"
 keywords = ["vls", "vers-like", "parser"]
 
 [dependencies]
+strum = { version = "0.28.0", features = ["derive"] }
 thiserror = "2"
 
 [features]

@@ -1,5 +1,5 @@
 use rstest::rstest;
-use vls::{Comparator, EqualComparatorKind, Vls};
+use vls::{Comparator, Vls};
 
 #[test]
 fn parse_single_any() {
@@ -18,13 +18,13 @@ fn parse_single_any() {
 #[case(">1.0.0", Comparator::GreaterThan, "1.0.0", false)]
 #[case(
     "=3.2.1",
-    Comparator::Equal(EqualComparatorKind::Explicit),
+    Comparator::EqualExplicit,
     "3.2.1",
     true
 )]
 #[case(
     "1.2.3",
-    Comparator::Equal(EqualComparatorKind::Implicit),
+    Comparator::EqualImplicit,
     "1.2.3",
     true
 )]

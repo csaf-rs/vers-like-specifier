@@ -47,9 +47,6 @@ impl FromStr for VersionConstraint {
 
 impl Display for VersionConstraint {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match &self.comparator {
-            Comparator::Equal(kind) => write!(f, "{kind}{}", self.version),
-            cmp => write!(f, "{cmp}{}", self.version),
-        }
+        write!(f, "{}{}", self.comparator, self.version)
     }
 }

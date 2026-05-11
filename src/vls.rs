@@ -80,12 +80,12 @@ impl Vls {
     }
 
     /// Return `true` if this specifier pins exactly one version,
-    /// i.e. it contains a single [`Comparator::Equal`] constraint.
+    /// i.e. it contains a single equal constraint [`Comparator::EqualImplicit`] or [`Comparator::EqualExplicit`]
     pub fn is_single_version(&self) -> bool {
         matches!(
             self,
             Self::Constraints(cs)
-                if cs.len() == 1 && matches!(cs[0].comparator(), &Comparator::Equal(_))
+                if cs.len() == 1 && cs[0].comparator().is_equal()
         )
     }
 }
