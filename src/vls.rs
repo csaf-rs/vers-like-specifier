@@ -23,7 +23,7 @@ use thiserror::Error;
 /// # Syntax
 ///
 /// Derived from the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse).
-/// There currently is no "official" grammar for vers-like specifier / the <version-constraint> part of
+/// There currently is no "official" grammar for vers-like specifier / the `<version-constraint>` part of
 /// vers. This is a best-effort attempt used for this library.
 ///
 /// TODO: Revisit this once vers has been ratified through ECMA, which might include an official grammar.
@@ -77,7 +77,7 @@ impl Vls {
     }
 
     /// Return `true` if this specifier pins exactly one version,
-    /// i.e. it contains a single equal constraint [`Comparator::EqualImplicit`] or [`Comparator::EqualExplicit`]
+    /// i.e. it contains a single equal constraint [`EqualImplicit`](crate::comparator::Comparator::EqualImplicit) or [`EqualExplicit`](crate::comparator::Comparator::EqualExplicit)
     pub fn is_single_version(&self) -> bool {
         matches!(
             self,
