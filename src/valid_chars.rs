@@ -26,11 +26,11 @@ const fn build_lookup(valid_special: &str) -> AsciiLookup {
 
 /// Identifies which set of characters is considered valid in a given context.
 pub enum VlsSpecialCharSet {
-    /// Valid characters for a `version-string` string.
-    /// See vls::Vls for more details on the grammar.
+    /// Valid characters for a `version-string`.
+    /// See [`Vls`](crate::Vls) for more details on the grammar.
     VersionString,
     /// Valid characters for a `constraints` string.
-    /// See vls::Vls for more details on the grammar.
+    /// See [`Vls`](crate::Vls) for more details on the grammar.
     ConstraintsString,
 }
 
