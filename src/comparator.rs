@@ -89,6 +89,14 @@ impl Comparator {
         matches!(self, Comparator::EqualImplicit | Comparator::EqualExplicit)
     }
 
+    /// Returns `true` if `self` and `other` are the exact same variant.
+    ///
+    /// This differs from [`PartialEq`], which treats [`EqualImplicit`](Comparator::EqualImplicit)
+    /// and [`EqualExplicit`](Comparator::EqualExplicit) as equal.
+    pub fn is_same_variant(&self, other: &Self) -> bool {
+        core::mem::discriminant(self) == core::mem::discriminant(other)
+    }
+
     /// Extracts a comparator from a constraint string.
     ///
     /// Returns a tuple of the matched [`Comparator`] and the remaining version string.

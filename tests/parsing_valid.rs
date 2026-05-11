@@ -32,7 +32,12 @@ fn parse_single_versioned_constraint(
     assert_eq!(v.to_string(), input);
     let cs = v.constraints();
     assert_eq!(cs.len(), 1);
-    assert_eq!(*cs[0].comparator(), expected_cmp);
+    assert!(
+        cs[0].comparator().is_same_variant(&expected_cmp),
+        "expected comparator {:?}, got {:?}",
+        expected_cmp,
+        cs[0].comparator()
+    );
     assert_eq!(cs[0].version().as_str(), expected_ver);
     assert_eq!(v.is_single_version(), expected_is_single_version);
 }
