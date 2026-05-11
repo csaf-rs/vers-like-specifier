@@ -140,7 +140,7 @@ impl FromStr for Vls {
 
         // Report constraint errors before parse errors
         if let Some(constraint_errors) = constraint_errors {
-            return Err(VlsError::InvalidConstraintError(constraint_errors));
+            return Err(VlsError::InvalidConstraints(constraint_errors));
         }
 
         // Check for duplicate constraints
@@ -203,9 +203,9 @@ pub enum VlsError {
 
     /// One or more version strings contain characters outside the allowed grammar.
     #[error("Invalid constraint(s): {}", .0.iter().map(|e| e.to_string()).collect::<Vec<_>>().join(", "))]
-    InvalidConstraintError(Vec<VersionConstraintError>),
+    InvalidConstraints(Vec<VersionConstraintError>),
 
     /// The input contains duplicate constraint versions, irrespective of their comparators.
-    #[error("Duplicate constraint(s): {}", .0.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join(", "))]
+    #[error("Duplicate constraint version(s): {}", .0.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join(", "))]
     DuplicateConstraintVersions(BTreeSet<String>),
 }
