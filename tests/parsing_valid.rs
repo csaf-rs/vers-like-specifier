@@ -8,7 +8,7 @@ fn parse_single_any() {
     assert!(v.is_any());
     assert!(v.constraints().is_empty());
     assert_eq!(v.to_string(), "*");
-    assert_eq!(v.is_single_version(), false);
+    assert!(!v.is_single_version());
 }
 
 #[rstest]
@@ -45,7 +45,7 @@ fn parse_multiple_constraints() {
         .parse()
         .expect("Expected valid vls constraints to parse");
     assert!(matches!(v, Vls::Constraints(_)));
-    assert_eq!(v.is_single_version(), false);
+    assert!(!v.is_single_version());
 
     let cs = v.constraints();
     assert_eq!(cs.len(), 4);
