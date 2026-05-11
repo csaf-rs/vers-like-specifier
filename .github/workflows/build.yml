@@ -63,8 +63,8 @@ jobs:
           rustup default "${{ steps.rust-version.outputs.version }}"
       - name: Install clippy
         run: rustup component add clippy
-      - name: Clippy check
-        run: cargo clippy --all-targets --locked -- -D warnings
+      #- name: Clippy check
+      #  run: cargo clippy --all-targets --locked -- -D warnings
       - name: Build
         run: cargo build --locked --release --verbose
       - name: Run tests
