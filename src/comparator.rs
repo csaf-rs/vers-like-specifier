@@ -21,8 +21,8 @@ use strum::AsRefStr;
 /// However, their [`Display`] representations differ: `EqualImplicit` formats as `""` (empty string)
 /// while `EqualExplicit` formats as `"="`.
 ///
-/// If you need to distinguish between the two variants, use pattern matching to compare the enums
-/// instead of an equality check.
+/// If you need to distinguish between the two variants, use pattern matching to compare the enums or
+/// use [`Comparator::is_same_variant()`] instead of an equality check.
 #[derive(Debug, Clone, Copy, AsRefStr)]
 pub enum Comparator {
     /// Implicit equal - The version must be exactly equal to the constraint version.
