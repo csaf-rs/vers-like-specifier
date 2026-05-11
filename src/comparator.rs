@@ -4,6 +4,7 @@
 //! in version constraints, such as = (implicit or explicit), !=, <, <=, >, and >=.
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::hash::{Hash, Hasher};
 use strum::AsRefStr;
 
 /// Comparator for version constraints.
@@ -11,7 +12,18 @@ use strum::AsRefStr;
 /// This enum represents the different types of comparators that can be used
 /// in version constraints. Each comparator defines how a version is compared
 /// to the constraint version.
-#[derive(Debug, Clone, Copy, Eq, AsRefStr)]
+///
+/// # Equality
+///
+/// [`Comparator::EqualImplicit`] and [`Comparator::EqualExplicit`] are considered
+/// equal by [`PartialEq`] (i.e. `EqualImplicit == EqualExplicit` is `true`).
+///
+/// However, their [`Display`] representations differ: `EqualImplicit` formats as `""` (empty string)
+/// while `EqualExplicit` formats as `"="`.
+///
+/// If you need to distinguish between the two variants, use pattern matching to compare the enums
+/// instead of an equality check.
+#[derive(Debug, Clone, Copy, AsRefStr)]
 pub enum Comparator {
     /// Implicit equal - The version must be exactly equal to the constraint version.
     #[strum(serialize = "")]
@@ -36,6 +48,10 @@ pub enum Comparator {
     GreaterThanOrEqual,
 }
 
+/// [`EqualImplicit`](Comparator::EqualImplicit) and
+/// [`EqualExplicit`](Comparator::EqualExplicit) are treated as equal because they
+/// carry the same semantic meaning ("exactly this version"). All other variants
+/// are compared by discriminant.
 impl PartialEq for Comparator {
     fn eq(&self, other: &Self) -> bool {
         if self.is_equal() && other.is_equal() {
