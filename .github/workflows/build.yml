@@ -1,0 +1,71 @@
+name: build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - v*.**
+  merge_group:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency: # cancel in-progress runs of the same workflow for the same PR, but allow multiple runs for different PRs or for pushes to main
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update rustup
+        run: rustup update stable --no-self-update
+      - name: Format check
+        run: |
+          rustup component add rustfmt
+          cargo fmt --all -- --check -l
+      - name: Publish dry-run
+        if: github.ref_type != 'tag'
+        run: cargo publish --dry-run --verbose --no-verify --locked
+
+  build:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version:
+          - msrv
+          - stable
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update rustup
+        run: rustup update stable --no-self-update
+      - name: Determine Rust version
+        id: rust-version
+        run: |
+          if [[ "${{ matrix.version }}" == "msrv" ]]; then
+            VERSION=$(cargo metadata --no-deps --format-version=1 --locked | jq -r '.packages[0].rust_version')
+          else
+            VERSION=$(rustc +stable --version | awk '{print $2}')
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Set Rust version
+        run: |
+          rustup override set "${{ steps.rust-version.outputs.version }}"
+          rustup default "${{ steps.rust-version.outputs.version }}"
+      - name: Install clippy
+        run: rustup component add clippy
+      - name: Clippy check
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Build
+        run: cargo build --locked --release --verbose
+      - name: Run tests
+        run: cargo test --locked --release --verbose
