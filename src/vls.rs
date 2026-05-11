@@ -26,7 +26,7 @@ use thiserror::Error;
 /// There currently is no "official" grammar for vers-like specifier / the `<version-constraint>` part of
 /// vers. This is a best-effort attempt used for this library.
 ///
-/// TODO: Revisit this once vers has been ratified through ECMA, which might include an official grammar.
+/// **Note:** This grammar may need to be updated once vers has been ratified through ECMA.
 ///
 /// ```text
 /// vls            = constraints / "*"
