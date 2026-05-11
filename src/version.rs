@@ -18,18 +18,18 @@ impl VersionString {
 }
 
 impl FromStr for VersionString {
-    type Err = Vec<VersionConstraintError>;
+    type Err = VersionConstraintError;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         if input.is_empty() {
-            return Err(vec![VersionConstraintError::EmptyVersion]);
+            return Err(VersionConstraintError::EmptyVersion);
         }
 
         let invalid_chars = collect_invalid_characters(input, VlsSpecialCharSet::VersionString);
         if let Some(invalid_chars) = invalid_chars {
-            return Err(vec![VersionConstraintError::InvalidVersionCharacters(
+            return Err(VersionConstraintError::InvalidVersionCharacters(
                 invalid_chars,
-            )]);
+            ));
         }
 
         Ok(Self(input.to_string()))

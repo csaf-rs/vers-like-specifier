@@ -4,6 +4,7 @@ use crate::VersionString;
 use crate::constraint::VersionConstraint;
 use crate::constraint::VersionConstraintError;
 use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
+use std::collections::BTreeSet;
 use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Display;
@@ -137,7 +138,7 @@ impl FromStr for Vls {
         for part in parts {
             match part.parse::<VersionConstraint>() {
                 Ok(constraint) => constraints.push(constraint),
-                Err(errors) => constraint_errors.get_or_insert_default().extend(errors),
+                Err(error) => constraint_errors.get_or_insert_default().push(error),
             }
         }
 
@@ -148,7 +149,7 @@ impl FromStr for Vls {
 
         // Check for duplicate constraints
         let mut seen_versions: HashSet<&VersionString> = HashSet::new();
-        let mut duplicate_versions: Option<HashSet<String>> = None;
+        let mut duplicate_versions: Option<BTreeSet<String>> = None;
         for c in &constraints {
             if !seen_versions.insert(c.version()) {
                 duplicate_versions

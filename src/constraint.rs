@@ -24,12 +24,12 @@ impl VersionConstraint {
 }
 
 impl FromStr for VersionConstraint {
-    type Err = Vec<VersionConstraintError>;
+    type Err = VersionConstraintError;
 
     fn from_str(constraint_str: &str) -> Result<Self, Self::Err> {
         // Check if the constraint is empty
         if constraint_str.is_empty() {
-            return Err(vec![VersionConstraintError::EmptyConstraint]);
+            return Err(VersionConstraintError::EmptyConstraint);
         }
 
         // Match the comparators

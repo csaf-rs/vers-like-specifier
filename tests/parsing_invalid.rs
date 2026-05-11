@@ -1,5 +1,5 @@
 use rstest::rstest;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use vls::{VersionConstraintError, Vls, VlsError};
 
 #[test]
@@ -132,7 +132,7 @@ fn parse_duplicate_constraints_is_error(#[case] input: &str, #[case] expected: V
     let err = input.parse::<Vls>().unwrap_err();
     assert!(matches!(err, VlsError::DuplicateConstraintVersions(_)));
     if let VlsError::DuplicateConstraintVersions(dupes) = err {
-        let expected: HashSet<String> = expected.into_iter().map(String::from).collect();
+        let expected: BTreeSet<String> = expected.into_iter().map(String::from).collect();
         assert_eq!(dupes, expected);
     }
 }
