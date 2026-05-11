@@ -61,6 +61,22 @@ impl PartialEq for Comparator {
     }
 }
 
+impl Eq for Comparator {}
+
+impl Hash for Comparator {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let disc: u8 = match self {
+            Comparator::EqualImplicit | Comparator::EqualExplicit => 0,
+            Comparator::NotEqual => 1,
+            Comparator::LessThan => 2,
+            Comparator::LessThanOrEqual => 3,
+            Comparator::GreaterThan => 4,
+            Comparator::GreaterThanOrEqual => 5,
+        };
+        disc.hash(state);
+    }
+}
+
 impl Display for Comparator {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str(self.as_ref())
