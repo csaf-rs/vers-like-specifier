@@ -1,7 +1,6 @@
 //! The core [`Vls`] type.
 
 use crate::VersionString;
-use crate::comparator::Comparator;
 use crate::constraint::VersionConstraint;
 use crate::error::{VersionConstraintError, VlsError};
 use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};

@@ -16,18 +16,8 @@ fn parse_single_any() {
 #[case("<4.2", Comparator::LessThan, "4.2", false)]
 #[case(">=8.1.5", Comparator::GreaterThanOrEqual, "8.1.5", false)]
 #[case(">1.0.0", Comparator::GreaterThan, "1.0.0", false)]
-#[case(
-    "=3.2.1",
-    Comparator::EqualExplicit,
-    "3.2.1",
-    true
-)]
-#[case(
-    "1.2.3",
-    Comparator::EqualImplicit,
-    "1.2.3",
-    true
-)]
+#[case("=3.2.1", Comparator::EqualExplicit, "3.2.1", true)]
+#[case("1.2.3", Comparator::EqualImplicit, "1.2.3", true)]
 #[case("!=5.0", Comparator::NotEqual, "5.0", false)]
 fn parse_single_versioned_constraint(
     #[case] input: &str,

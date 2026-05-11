@@ -7,7 +7,6 @@ use std::fmt;
 use std::fmt::Display;
 use strum::AsRefStr;
 
-
 /// Comparator for version constraints.
 ///
 /// This enum represents the different types of comparators that can be used
@@ -53,7 +52,6 @@ impl Display for Comparator {
     }
 }
 
-
 impl Comparator {
     /// Returns true if the comparator represents equality (implicit or explicit)
     pub const fn is_equal(&self) -> bool {
@@ -67,21 +65,26 @@ impl Comparator {
     /// * gte/lte comparators need to take precedence over the gt/lt comparators
     /// * implicit eq needs to come last / be the fallthrough
     pub fn extract_comparator(constraint_str: &str) -> (Comparator, &str) {
-        if let Some(stripped) = constraint_str.strip_prefix(Comparator::GreaterThanOrEqual.as_ref()) {
+        if let Some(stripped) = constraint_str.strip_prefix(Comparator::GreaterThanOrEqual.as_ref())
+        {
             (Comparator::GreaterThanOrEqual, stripped)
-        } else if let Some(stripped) = constraint_str.strip_prefix(Comparator::LessThanOrEqual.as_ref()) {
+        } else if let Some(stripped) =
+            constraint_str.strip_prefix(Comparator::LessThanOrEqual.as_ref())
+        {
             (Comparator::LessThanOrEqual, stripped)
         } else if let Some(stripped) = constraint_str.strip_prefix(Comparator::NotEqual.as_ref()) {
             (Comparator::NotEqual, stripped)
-        } else if let Some(stripped) = constraint_str.strip_prefix(Comparator::GreaterThan.as_ref()) {
+        } else if let Some(stripped) = constraint_str.strip_prefix(Comparator::GreaterThan.as_ref())
+        {
             (Comparator::GreaterThan, stripped)
         } else if let Some(stripped) = constraint_str.strip_prefix(Comparator::LessThan.as_ref()) {
             (Comparator::LessThan, stripped)
-        } else if let Some(stripped) = constraint_str.strip_prefix(Comparator::EqualExplicit.as_ref()) {
+        } else if let Some(stripped) =
+            constraint_str.strip_prefix(Comparator::EqualExplicit.as_ref())
+        {
             (Comparator::EqualExplicit, stripped)
         } else {
             (Comparator::EqualImplicit, constraint_str)
         }
     }
 }
-
