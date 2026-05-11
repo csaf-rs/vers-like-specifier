@@ -60,7 +60,7 @@ pub fn collect_invalid_characters(
         .filter(|ch| {
             let idx = *ch as usize;
             // check if the char is not ASCII alphanumeric or contained in the allowed special chars
-            !(ch.is_ascii_alphanumeric() || idx < ASCII_TABLE_SIZE && lookup[idx])
+            !(ch.is_ascii_alphanumeric() || (idx < ASCII_TABLE_SIZE && lookup[idx]))
         })
         .collect();
 
