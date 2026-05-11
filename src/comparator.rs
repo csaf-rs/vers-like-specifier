@@ -3,8 +3,7 @@
 //! The `Comparator` enum represents the different types of comparators that can be used
 //! in version constraints, such as = (implicit or explicit), !=, <, <=, >, and >=.
 
-use std::fmt;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use strum::AsRefStr;
 
 /// Comparator for version constraints.
@@ -47,7 +46,7 @@ impl PartialEq for Comparator {
 }
 
 impl Display for Comparator {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str(self.as_ref())
     }
 }

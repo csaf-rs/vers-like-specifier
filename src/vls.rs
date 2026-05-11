@@ -1,13 +1,9 @@
 //! The core [`Vls`] type.
 
-use crate::VersionString;
-use crate::constraint::VersionConstraint;
-use crate::constraint::VersionConstraintError;
+use crate::constraint::{VersionConstraint, VersionConstraintError, VersionString};
 use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
-use std::collections::BTreeSet;
-use std::collections::HashSet;
-use std::fmt;
-use std::fmt::Display;
+use std::collections::{BTreeSet, HashSet};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 use thiserror::Error;
 
@@ -166,7 +162,7 @@ impl FromStr for Vls {
 }
 
 impl Display for Vls {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::Any => write!(f, "*"),
             Self::Constraints(constraints) => {
@@ -209,7 +205,7 @@ pub enum VlsError {
     #[error("Invalid constraint(s): {}", .0.iter().map(|e| e.to_string()).collect::<Vec<_>>().join(", "))]
     InvalidConstraintError(Vec<VersionConstraintError>),
 
-    /// The input contains duplicate constraint version, irrespective of their comparators.
+    /// The input contains duplicate constraint versions, irrespective of their comparators.
     #[error("Duplicate constraint(s): {}", .0.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join(", "))]
-    DuplicateConstraintVersions(HashSet<String>),
+    DuplicateConstraintVersions(BTreeSet<String>),
 }

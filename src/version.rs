@@ -1,6 +1,6 @@
 use crate::VersionConstraintError;
 use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
-use std::fmt;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 
 /// A validated version string.
@@ -36,8 +36,8 @@ impl FromStr for VersionString {
     }
 }
 
-impl fmt::Display for VersionString {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for VersionString {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str(&self.0)
     }
 }
