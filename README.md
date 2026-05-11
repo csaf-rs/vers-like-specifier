@@ -2,11 +2,11 @@
 
 A Rust library for parsing and validating **Vers-like Specifiers** (vls) as defined in [CSAF 2.0](https://docs.oasis-open.org/csaf/csaf/v2.0/os/csaf-v2.0-os.html#31232-branches-type---name-under-product-version-range) and [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range).
 
-vls is the `<version-constraint>` portion of a [vers](https://github.com/package-url/vers-spec) URL **without** the `vers:<scheme>/` prefix. 
+vls is the `<version-constraint>` portion of a [vers](https://github.com/package-url/vers-spec) URL **without** the `vers:<scheme>/` prefix.
 
 It represents either a wildcard (`*`) matching any version, or a `|`-separated list of version constraints each consisting of an implicit or explicit comparator and a version string.
 
-**Due to the undefined / unknown schema, it is nearly impossible for tools to reliable determine whether a given version is in the range or not. vls is a fallback option and SHOULD NOT be used unless really necessary.**
+**Due to the undefined / unknown schema, it is nearly impossible for tools to reliably determine whether a given version is in the range or not. vls is a fallback option and SHOULD NOT be used unless really necessary.**
 
 ## Minimum Supported Rust Version (MSRV)
 
@@ -21,7 +21,12 @@ Add `vls` to your `Cargo.toml`:
 vls = "0.1"
 ```
 
-### ATTENTION: This will only work after the first release.
+### Note: This crate has not yet been published to [crates.io](https://crates.io). In the meantime, use a git dependency:
+
+```toml
+[dependencies]
+vls = { git = "https://github.com/csaf-rs/vls" }
+```
 
 ## Usage
 
