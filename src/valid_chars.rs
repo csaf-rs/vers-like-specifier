@@ -12,7 +12,7 @@ const fn build_lookup(valid_special: &str) -> AsciiLookup {
     let bytes = valid_special.as_bytes();
     let mut i = 0;
     while i < bytes.len() {
-        if bytes[i] < ASCII_TABLE_SIZE as u8 {
+        if (bytes[i] as usize) < ASCII_TABLE_SIZE {
             table[bytes[i] as usize] = true;
         } else {
             panic!(
