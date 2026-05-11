@@ -188,7 +188,7 @@ pub enum VlsError {
     EmptyInput,
 
     /// The input contains characters not allowed by the VLS grammar.
-    /// See vls::Vls for more details on the grammar.
+    /// See [`Vls`] for more details on the grammar.
     #[error("Invalid character(s) in VLS: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
     InvalidCharacters(Vec<char>),
 
