@@ -1,5 +1,5 @@
-use crate::comparator::Comparator;
-use crate::version::VersionString;
+pub use crate::comparator::Comparator;
+pub use crate::version::VersionString;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use thiserror::Error;

@@ -1,7 +1,5 @@
 // public api
-pub use comparator::Comparator;
-pub use constraint::{VersionConstraint, VersionConstraintError};
-pub use version::VersionString;
+pub use constraint::{Comparator, VersionConstraint, VersionConstraintError, VersionString};
 pub use vls::{Vls, VlsError};
 
 mod comparator;
