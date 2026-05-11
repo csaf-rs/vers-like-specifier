@@ -17,7 +17,7 @@ use thiserror::Error;
 ///
 /// Due to the unspecified format of the versions, only exact matching is possible and containment checks are not supported.
 ///
-/// Be aware that when parsing of a string into [Vls], the parser returns the first [VlsError] encountered in the parsing process.
+/// Be aware that when parsing of a string into [`Vls`], the parser returns the first [`VlsError`] encountered in the parsing process.
 /// This will obfuscate other errors that might appear further into the parsing process.
 ///
 /// # Syntax
