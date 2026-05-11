@@ -68,7 +68,7 @@ pub fn collect_invalid_characters(
         return None;
     }
 
-    invalid.sort();
+    invalid.sort_unstable();
     invalid.dedup();
     Some(invalid)
 }
