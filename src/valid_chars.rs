@@ -46,14 +46,6 @@ impl VlsSpecialCharSet {
     }
 }
 
-/// Checks if the char is ASCII alphanumeric or contained in a list of allowed special chars
-/// for either the whole VLS string or a version string.
-#[inline]
-fn is_valid_char(ch: char, valid_lookup: &AsciiLookup) -> bool {
-    let idx = ch as usize;
-    ch.is_ascii_alphanumeric() || (idx < ASCII_TABLE_SIZE && valid_lookup[idx])
-}
-
 /// Collects characters from `input` that are **not** ASCII-alphanumeric and **not**
 /// contained in `special_charset`, returning them sorted and deduplicated.
 ///
@@ -65,7 +57,11 @@ pub fn collect_invalid_characters(
     let lookup = special_charset.get_lookup();
     let mut invalid: Vec<char> = input
         .chars()
-        .filter(|ch| !is_valid_char(*ch, lookup))
+        .filter(|ch| {
+            let idx = *ch as usize;
+            // check if the char is ASCII alphanumeric and contained in the allowed special chars
+            !ch.is_ascii_alphanumeric() && !(idx < ASCII_TABLE_SIZE && lookup[idx])
+        })
         .collect();
 
     if invalid.is_empty() {
