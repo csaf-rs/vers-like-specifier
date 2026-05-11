@@ -2,12 +2,13 @@
 
 use crate::VersionString;
 use crate::constraint::VersionConstraint;
-use crate::error::{VersionConstraintError, VlsError};
+use crate::constraint::VersionConstraintError;
 use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
 use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Display;
 use std::str::FromStr;
+use thiserror::Error;
 
 /// A **Vers-like Specifier** (VLS).
 ///
@@ -180,4 +181,34 @@ impl Display for Vls {
             }
         }
     }
+}
+
+/// Errors that can occur when parsing a vls string.
+#[derive(Error, Debug, PartialEq, Eq)]
+pub enum VlsError {
+    /// The input string was empty.
+    #[error("Empty vls input")]
+    EmptyInput,
+
+    /// The input contains characters not allowed by the VLS grammar.
+    /// See vls::Vls for more details on the grammar.
+    #[error("Invalid character(s) in VLS: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
+    InvalidCharacters(Vec<char>),
+
+    /// The input contains a `vers:` URI prefix, which is not allowed in a VLS string.
+    #[error("VLS must not contain a 'vers:' URI prefix")]
+    ContainsVersPrefix,
+
+    /// The input most likely contains a `vers` versioning-scheme
+    /// component (e.g. `gem/>=2.2.0`), indicated by the presence of the scheme delimiter `/`.
+    #[error("VLS must not contain a versioning-scheme component")]
+    ContainsVersioningScheme,
+
+    /// One or more version strings contain characters outside the allowed grammar.
+    #[error("Invalid constraint(s): {}", .0.iter().map(|e| e.to_string()).collect::<Vec<_>>().join(", "))]
+    InvalidConstraintError(Vec<VersionConstraintError>),
+
+    /// The input contains duplicate constraint version, irrespective of their comparators.
+    #[error("Duplicate constraint(s): {}", .0.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join(", "))]
+    DuplicateConstraintVersions(HashSet<String>),
 }
