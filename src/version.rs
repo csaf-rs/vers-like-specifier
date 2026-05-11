@@ -6,7 +6,7 @@ use std::str::FromStr;
 /// A validated version string.
 ///
 /// A `VersionString` is guaranteed to be non-empty and to contain only characters
-/// allowed by the version-string grammar. See vls::Vls for more details on the grammar.
+/// allowed by the version-string grammar. See [`Vls`](crate::Vls) for more details on the grammar.
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct VersionString(String);
 
