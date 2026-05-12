@@ -1,15 +1,11 @@
 //! The core [`Vls`] type.
 
-use crate::VersionString;
-use crate::comparator::Comparator;
-use crate::constraint::VersionConstraint;
-use crate::error::{VersionConstraintError, VlsError};
+use crate::constraint::{VersionConstraint, VersionConstraintError, VersionString};
 use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
-use std::collections::BTreeSet;
-use std::collections::HashSet;
-use std::fmt;
-use std::fmt::Display;
+use std::collections::{BTreeSet, HashSet};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
+use thiserror::Error;
 
 /// A **Vers-like Specifier** (VLS).
 ///
@@ -21,16 +17,16 @@ use std::str::FromStr;
 ///
 /// Due to the unspecified format of the versions, only exact matching is possible and containment checks are not supported.
 ///
-/// Be aware that when parsing of a string into [Vls], the parser returns the first [VlsError] encountered in the parsing process.
+/// Be aware that when parsing of a string into [`Vls`], the parser returns the first [`VlsError`] encountered in the parsing process.
 /// This will obfuscate other errors that might appear further into the parsing process.
 ///
 /// # Syntax
 ///
 /// Derived from the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse).
-/// There currently is no "official" grammar for vers-like specifier / the <version-constraint> part of
+/// There currently is no "official" grammar for vers-like specifier / the `<version-constraint>` part of
 /// vers. This is a best-effort attempt used for this library.
 ///
-/// TODO: Revisit this once vers has been ratified through ECMA, which might include an official grammar.
+/// **Note:** This grammar may need to be updated once vers has been ratified through ECMA.
 ///
 /// ```text
 /// vls            = constraints / "*"
@@ -81,12 +77,12 @@ impl Vls {
     }
 
     /// Return `true` if this specifier pins exactly one version,
-    /// i.e. it contains a single [`Comparator::Equal`] constraint.
+    /// i.e. it contains a single equal constraint [`EqualImplicit`](crate::comparator::Comparator::EqualImplicit) or [`EqualExplicit`](crate::comparator::Comparator::EqualExplicit)
     pub fn is_single_version(&self) -> bool {
         matches!(
             self,
             Self::Constraints(cs)
-                if cs.len() == 1 && matches!(cs[0].comparator(), &Comparator::Equal(_))
+                if cs.len() == 1 && cs[0].comparator().is_equal()
         )
     }
 }
@@ -144,7 +140,7 @@ impl FromStr for Vls {
 
         // Report constraint errors before parse errors
         if let Some(constraint_errors) = constraint_errors {
-            return Err(VlsError::InvalidConstraintError(constraint_errors));
+            return Err(VlsError::InvalidConstraints(constraint_errors));
         }
 
         // Check for duplicate constraints
@@ -166,20 +162,50 @@ impl FromStr for Vls {
 }
 
 impl Display for Vls {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::Any => write!(f, "*"),
+            Self::Any => f.write_str("*"),
             Self::Constraints(constraints) => {
-                let mut first = true;
-                for c in constraints {
-                    if !first {
+                let mut iter = constraints.iter();
+                if let Some(first) = iter.next() {
+                    first.fmt(f)?;
+                    for c in iter {
                         f.write_str("|")?;
+                        c.fmt(f)?;
                     }
-                    first = false;
-                    c.fmt(f)?;
                 }
                 Ok(())
             }
         }
     }
+}
+
+/// Errors that can occur when parsing a vls string.
+#[derive(Error, Debug, PartialEq, Eq)]
+pub enum VlsError {
+    /// The input string was empty.
+    #[error("Empty vls input")]
+    EmptyInput,
+
+    /// The input contains characters not allowed by the VLS grammar.
+    /// See [`Vls`] for more details on the grammar.
+    #[error("Invalid character(s) in VLS: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
+    InvalidCharacters(Vec<char>),
+
+    /// The input contains a `vers:` URI prefix, which is not allowed in a VLS string.
+    #[error("VLS must not contain a 'vers:' URI prefix")]
+    ContainsVersPrefix,
+
+    /// The input most likely contains a `vers` versioning-scheme
+    /// component (e.g. `gem/>=2.2.0`), indicated by the presence of the scheme delimiter `/`.
+    #[error("VLS must not contain a versioning-scheme component")]
+    ContainsVersioningScheme,
+
+    /// One or more version strings contain characters outside the allowed grammar.
+    #[error("Invalid constraint(s): {}", .0.iter().map(std::string::ToString::to_string).collect::<Vec<_>>().join(", "))]
+    InvalidConstraints(Vec<VersionConstraintError>),
+
+    /// The input contains duplicate constraint versions, irrespective of their comparators.
+    #[error("Duplicate constraint version(s): {}", .0.iter().map(|s| format!("'{s}'")).collect::<Vec<_>>().join(", "))]
+    DuplicateConstraintVersions(BTreeSet<String>),
 }
