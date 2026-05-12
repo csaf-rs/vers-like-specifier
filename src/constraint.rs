@@ -1,11 +1,11 @@
-use crate::VersionConstraintError;
-use crate::comparator::Comparator;
-use crate::version::VersionString;
-use std::fmt::{Display, Formatter};
+pub use crate::comparator::Comparator;
+pub use crate::version::VersionString;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
+use thiserror::Error;
 
 /// A single version constraint pairing a [`Comparator`] with a validated [`VersionString`].
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct VersionConstraint {
     comparator: Comparator,
     version: VersionString,
@@ -46,10 +46,24 @@ impl FromStr for VersionConstraint {
 }
 
 impl Display for VersionConstraint {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match &self.comparator {
-            Comparator::Equal(kind) => write!(f, "{kind}{}", self.version),
-            cmp => write!(f, "{cmp}{}", self.version),
-        }
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "{}{}", self.comparator, self.version)
     }
+}
+
+/// Errors specific to a single constraint within a VLS string.
+#[derive(Error, Debug, PartialEq, Eq)]
+pub enum VersionConstraintError {
+    /// A constraint segment was empty (e.g. from `||`, a leading `|`, or a trailing `|`).
+    #[error("Empty constraint")]
+    EmptyConstraint,
+
+    /// The version part of a constraint was empty (e.g. `>=` without a version).
+    #[error("Empty version in constraint")]
+    EmptyVersion,
+
+    /// The version string contains characters outside the allowed grammar.
+    /// See [`Vls`](crate::Vls) for more details on the grammar.
+    #[error("Invalid character(s) in version string: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
+    InvalidVersionCharacters(Vec<char>),
 }

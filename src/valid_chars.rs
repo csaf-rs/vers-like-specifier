@@ -1,12 +1,18 @@
+/// The number of valid ASCII codepoints (0–127)
+const ASCII_TABLE_SIZE: usize = 128;
+
+/// A lookup table mapping ASCII codepoints (0–127) to character validity
+type AsciiLookup = [bool; ASCII_TABLE_SIZE];
+
 /// O(1) compile-time generated lookup of ASCII characters validity.
-/// Creates a `[bool; 128]`, `valid_special` ASCII characters are mapped to their codepoint (0 - 127).
-/// If the char is valid, the bool in the resulting `[bool; 128]` is set to true.
-const fn build_lookup(valid_special: &str) -> [bool; 128] {
-    let mut table = [false; 128];
+/// Creates an `AsciiLookup`, `valid_special` ASCII characters are mapped to their codepoint (0 - 127).
+/// If the char is valid, the bool in the resulting `AsciiLookup` is set to true.
+const fn build_lookup(valid_special: &str) -> AsciiLookup {
+    let mut table = [false; ASCII_TABLE_SIZE];
     let bytes = valid_special.as_bytes();
     let mut i = 0;
     while i < bytes.len() {
-        if bytes[i] < 128 {
+        if (bytes[i] as usize) < ASCII_TABLE_SIZE {
             table[bytes[i] as usize] = true;
         } else {
             panic!(
@@ -20,32 +26,24 @@ const fn build_lookup(valid_special: &str) -> [bool; 128] {
 
 /// Identifies which set of characters is considered valid in a given context.
 pub enum VlsSpecialCharSet {
-    /// Valid characters for a `version-string` string.
-    /// See vls::Vls for more details on the grammar.
+    /// Valid characters for a `version-string`.
+    /// See [`Vls`](crate::Vls) for more details on the grammar.
     VersionString,
     /// Valid characters for a `constraints` string.
-    /// See vls::Vls for more details on the grammar.
+    /// See [`Vls`](crate::Vls) for more details on the grammar.
     ConstraintsString,
 }
 
 impl VlsSpecialCharSet {
-    fn get_lookup(&self) -> &'static [bool; 128] {
+    fn get_lookup(&self) -> &'static AsciiLookup {
         // Generate compile-time lookups
-        const VERSION_STRING: [bool; 128] = build_lookup("-._+~");
-        const CONSTRAINTS_STRING: [bool; 128] = build_lookup("-._+~=!<>|");
+        const VERSION_STRING: AsciiLookup = build_lookup("-._+~");
+        const CONSTRAINTS_STRING: AsciiLookup = build_lookup("-._+~=!<>|");
         match self {
             VlsSpecialCharSet::VersionString => &VERSION_STRING,
             VlsSpecialCharSet::ConstraintsString => &CONSTRAINTS_STRING,
         }
     }
-}
-
-/// Checks if the char is ASCII alphanumeric or contained in a list of allowed special chars
-/// for either the whole VLS string or a version string.
-#[inline]
-fn is_valid_char(ch: char, valid_lookup: &[bool; 128]) -> bool {
-    let idx = ch as usize;
-    ch.is_ascii_alphanumeric() || (idx < 128 && valid_lookup[idx])
 }
 
 /// Collects characters from `input` that are **not** ASCII-alphanumeric and **not**
@@ -59,14 +57,18 @@ pub fn collect_invalid_characters(
     let lookup = special_charset.get_lookup();
     let mut invalid: Vec<char> = input
         .chars()
-        .filter(|ch| !is_valid_char(*ch, lookup))
+        .filter(|ch| {
+            let idx = *ch as usize;
+            // check if the char is not ASCII alphanumeric or contained in the allowed special chars
+            !(ch.is_ascii_alphanumeric() || (idx < ASCII_TABLE_SIZE && lookup[idx]))
+        })
         .collect();
 
     if invalid.is_empty() {
         return None;
     }
 
-    invalid.sort();
+    invalid.sort_unstable();
     invalid.dedup();
     Some(invalid)
 }

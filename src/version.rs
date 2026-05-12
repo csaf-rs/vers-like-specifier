@@ -1,12 +1,12 @@
 use crate::VersionConstraintError;
 use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
-use std::fmt;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 
 /// A validated version string.
 ///
 /// A `VersionString` is guaranteed to be non-empty and to contain only characters
-/// allowed by the version-string grammar. See vls::Vls for more details on the grammar.
+/// allowed by the version-string grammar. See [`Vls`](crate::Vls) for more details on the grammar.
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct VersionString(String);
 
@@ -36,8 +36,8 @@ impl FromStr for VersionString {
     }
 }
 
-impl fmt::Display for VersionString {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for VersionString {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str(&self.0)
     }
 }
