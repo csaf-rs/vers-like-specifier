@@ -115,7 +115,7 @@ fn parse_invalid_version_characters_is_error(
                 VersionConstraintError::InvalidVersionCharacters(chars) => {
                     assert_eq!(chars, &expected_chars[i]);
                 }
-                other => panic!("Expected InvalidVersionCharacters, got: {:?}", other),
+                other => panic!("Expected InvalidVersionCharacters, got: {other:?}"),
             }
         }
     }
