@@ -1,5 +1,5 @@
 use rstest::rstest;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use vls::{VersionConstraintError, Vls, VlsError};
 
 #[test]
@@ -61,8 +61,8 @@ fn parse_invalid_constraints_chars_is_error(
 #[case::leading_between_trailing("||<4.2|||>6||", 6)]
 fn parse_empty_constraint_is_error(#[case] input: &str, #[case] expected_count: usize) {
     let err = input.parse::<Vls>().unwrap_err();
-    assert!(matches!(err, VlsError::InvalidConstraintError(_)));
-    if let VlsError::InvalidConstraintError(errors) = err {
+    assert!(matches!(err, VlsError::InvalidConstraints(_)));
+    if let VlsError::InvalidConstraints(errors) = err {
         assert_eq!(errors.len(), expected_count);
         assert!(
             errors
@@ -85,8 +85,8 @@ fn parse_empty_constraint_is_error(#[case] input: &str, #[case] expected_count: 
 #[case::multiple_bare("=|!=|<", 3)]
 fn parse_empty_version_is_error(#[case] input: &str, #[case] expected_count: usize) {
     let err = input.parse::<Vls>().unwrap_err();
-    assert!(matches!(err, VlsError::InvalidConstraintError(_)));
-    if let VlsError::InvalidConstraintError(errors) = err {
+    assert!(matches!(err, VlsError::InvalidConstraints(_)));
+    if let VlsError::InvalidConstraints(errors) = err {
         assert_eq!(errors.len(), expected_count);
         assert!(
             errors
@@ -107,8 +107,8 @@ fn parse_invalid_version_characters_is_error(
     #[case] expected_chars: Vec<Vec<char>>,
 ) {
     let err = input.parse::<Vls>().unwrap_err();
-    assert!(matches!(err, VlsError::InvalidConstraintError(_)));
-    if let VlsError::InvalidConstraintError(errors) = err {
+    assert!(matches!(err, VlsError::InvalidConstraints(_)));
+    if let VlsError::InvalidConstraints(errors) = err {
         assert_eq!(errors.len(), expected_chars.len());
         for (i, error) in errors.iter().enumerate() {
             match error {
@@ -132,7 +132,7 @@ fn parse_duplicate_constraints_is_error(#[case] input: &str, #[case] expected: V
     let err = input.parse::<Vls>().unwrap_err();
     assert!(matches!(err, VlsError::DuplicateConstraintVersions(_)));
     if let VlsError::DuplicateConstraintVersions(dupes) = err {
-        let expected: HashSet<String> = expected.into_iter().map(String::from).collect();
+        let expected: BTreeSet<String> = expected.into_iter().map(String::from).collect();
         assert_eq!(dupes, expected);
     }
 }
