@@ -25,7 +25,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Update rustup
         run: rustup update stable --no-self-update
       - name: Format check
@@ -45,7 +45,7 @@ jobs:
           - msrv
           - stable
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Update rustup
         run: rustup update stable --no-self-update
       - name: Determine Rust version
