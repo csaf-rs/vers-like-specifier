@@ -4,7 +4,7 @@ A Rust library for parsing and validating **Vers-like Specifiers** (vls) as defi
 
 vls is the `<version-constraint>` portion of a [vers](https://github.com/package-url/vers-spec) URL **without** the `vers:<scheme>/` prefix.
 
-It represents either a wildcard (`*`) matching any version, or a `|`-separated list of version constraints each consisting of an implicit or explicit comparator and a version string.
+It represents a `|`-separated list of version constraints each consisting of an implicit or explicit comparator and a version string.
 
 **Due to the undefined / unknown schema, it is nearly impossible for tools to reliably determine whether a given version is in the range or not. vls is a fallback option and SHOULD NOT be used unless really necessary.**
 

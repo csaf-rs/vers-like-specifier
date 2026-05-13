@@ -6,7 +6,7 @@
 //!
 //! | Type | Description |
 //! |------|-------------|
-//! | [`Vls`] | Either at least one [`VersionConstraint`] or a single wildcard |
+//! | [`Vls`] | At least one [`VersionConstraint`] |
 //! | [`VersionConstraint`] | A [`Comparator`] / [`VersionString`] pair |
 //! | [`Comparator`] | A comparator used by [`VersionConstraint`] |
 //! | [`VersionString`] | A validated version string, used by [`VersionConstraint`] |

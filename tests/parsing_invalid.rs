@@ -8,6 +8,12 @@ fn parse_empty_string_is_error() {
     assert!(matches!(err, VlsError::EmptyInput));
 }
 
+#[test]
+fn parse_wildcard_is_error() {
+    let err = "*".parse::<Vls>().unwrap_err();
+    assert!(matches!(err, VlsError::IsAny));
+}
+
 #[rstest]
 #[case::vers("vers:gem/>=2.2.0")]
 #[case::vers_all("vers:all/*")]
@@ -38,8 +44,9 @@ fn parse_bare_scheme_is_error(#[case] input: &str) {
 #[case::space_and_comma(">=1,0 beta", vec![' ', ','])]
 #[case::hash_and_at("1.0#rc1@beta", vec!['#', '@'])]
 #[case::multiple_different("$1.0 @2.0#3", vec![' ', '#', '$', '@'])]
-#[case::star_in_version(">=1.0*", vec!['*'])]
-#[case::star_and_equals_equals_is_valid(">=1.0*=2", vec!['*'])]
+#[case::star_after_version_string(">=1.0*", vec!['*'])]
+#[case::star_before_version_string(">=*1.0", vec!['*'])]
+#[case::star_before_comparator("*>=1.0*", vec!['*'])]
 fn parse_invalid_constraints_chars_is_error(
     #[case] input: &str,
     #[case] expected_chars: Vec<char>,
