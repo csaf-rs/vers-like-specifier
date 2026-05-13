@@ -11,7 +11,7 @@ fn parse_empty_string_is_error() {
 #[test]
 fn parse_wildcard_is_error() {
     let err = "*".parse::<Vls>().unwrap_err();
-    assert!(matches!(err, VlsError::IsAny));
+    assert!(matches!(err, VlsError::ForbiddenAnyUsed));
 }
 
 #[rstest]

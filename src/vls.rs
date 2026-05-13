@@ -89,7 +89,7 @@ impl FromStr for Vls {
 
         // If the string is a single wildcard, return an error
         if s == "*" {
-            return Err(VlsError::IsAny);
+            return Err(VlsError::ForbiddenAnyUsed);
         }
 
         // The next two checks are not strictly necessary, as we would try to parse
@@ -174,7 +174,7 @@ pub enum VlsError {
 
     /// The input is a wildcard (`*`), which is not allowed.
     #[error("'*' (vers syntax for matching all versions) is not allowed as a vls string")]
-    IsAny,
+    ForbiddenAnyUsed,
 
     /// The input contains characters not allowed by the VLS grammar.
     /// See [`Vls`] for more details on the grammar.
