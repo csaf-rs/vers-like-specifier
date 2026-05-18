@@ -1,16 +1,6 @@
 use rstest::rstest;
 use vls::{Comparator, Vls};
 
-#[test]
-fn parse_single_any() {
-    let v: Vls = "*".parse().unwrap();
-    assert_eq!(v, Vls::Any);
-    assert!(v.is_any());
-    assert!(v.constraints().is_empty());
-    assert_eq!(v.to_string(), "*");
-    assert!(!v.is_single_version());
-}
-
 #[rstest]
 #[case("<=2", Comparator::LessThanOrEqual, "2", false)]
 #[case("<4.2", Comparator::LessThan, "4.2", false)]
@@ -28,7 +18,6 @@ fn parse_single_versioned_constraint(
     let v: Vls = input
         .parse()
         .expect("Expected valid vls constraints to parse");
-    assert!(matches!(v, Vls::Constraints(_)));
     assert_eq!(v.to_string(), input);
     let cs = v.constraints();
     assert_eq!(cs.len(), 1);
@@ -49,7 +38,6 @@ fn parse_multiple_constraints() {
     let v: Vls = input
         .parse()
         .expect("Expected valid vls constraints to parse");
-    assert!(matches!(v, Vls::Constraints(_)));
     assert!(!v.is_single_version());
 
     let cs = v.constraints();

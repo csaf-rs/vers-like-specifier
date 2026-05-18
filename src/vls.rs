@@ -12,25 +12,29 @@ use thiserror::Error;
 /// VLS is the `<version-constraint>` part of a [vers](https://github.com/package-url/vers-spec)
 /// URL *without* the `vers:<scheme>/` prefix.
 ///
-/// It is either an ordered, `|`-separated list of [`VersionConstraint`] values (via [Constraints](Self::Constraints))
-/// or a wildcard (`*`) indicating that any version is acceptable (via [Any](Self::Any)).
+/// It is an ordered, `|`-separated list of [`VersionConstraint`] values.
 ///
-/// Due to the unspecified format of the versions, only exact matching is possible and containment checks are not supported.
+/// Due to the unspecified format of the versions, only exact matching is possible and range containment checks are not supported.
 ///
 /// Be aware that when parsing of a string into [`Vls`], the parser returns the first [`VlsError`] encountered in the parsing process.
 /// This will obfuscate other errors that might appear further into the parsing process.
 ///
 /// # Syntax
 ///
-/// Derived from the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse).
+/// Derived from the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse) and
+/// its comments in
+/// [CSAF 2.0](https://docs.oasis-open.org/csaf/csaf/v2.0/os/csaf-v2.0-os.html#31232-branches-type---name-under-product-version-range)
+/// and
+/// [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range).
+///
 /// There currently is no "official" grammar for vers-like specifier / the `<version-constraint>` part of
 /// vers. This is a best-effort attempt used for this library.
 ///
-/// **Note:** This grammar may need to be updated once vers has been ratified through ECMA.
+/// **Note:** This grammar may need to be updated once vers has been ratified through ECMA / following changes
+/// to / clarifications of CSAF 2.0 or CSAF 2.1.
 ///
 /// ```text
-/// vls            = constraints / "*"
-/// constraints    = constraint *( "|" constraint )
+/// vls            = constraint *( "|" constraint )
 /// constraint     = comparator version-string / version-string
 /// comparator     = "!=" / "<=" / ">=" / "=" / "<" / ">"
 /// version-string = 1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )
@@ -55,35 +59,21 @@ use thiserror::Error;
 /// assert_eq!(vls.to_string(), ">10.9a|!=10.9c|!=10.9f|<=10.9k");
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Vls {
-    /// Matches any version (`*`).
-    Any,
+pub struct Vls {
     /// An ordered, `|`-separated list of [`VersionConstraint`] values (always non-empty).
-    Constraints(Vec<VersionConstraint>),
+    constraints: Vec<VersionConstraint>,
 }
 
 impl Vls {
-    /// Return the constraints, or an empty slice for [`Any`](Self::Any).
+    /// Return the constraints.
     pub fn constraints(&self) -> &[VersionConstraint] {
-        match self {
-            Self::Any => &[],
-            Self::Constraints(cs) => cs,
-        }
-    }
-
-    /// Return `true` if this was parsed from a single `*`.
-    pub fn is_any(&self) -> bool {
-        matches!(self, Self::Any)
+        &self.constraints
     }
 
     /// Return `true` if this specifier pins exactly one version,
     /// i.e. it contains a single equal constraint [`EqualImplicit`](crate::comparator::Comparator::EqualImplicit) or [`EqualExplicit`](crate::comparator::Comparator::EqualExplicit)
     pub fn is_single_version(&self) -> bool {
-        matches!(
-            self,
-            Self::Constraints(cs)
-                if cs.len() == 1 && cs[0].comparator().is_equal()
-        )
+        self.constraints.len() == 1 && self.constraints[0].comparator().is_equal()
     }
 }
 
@@ -97,9 +87,9 @@ impl FromStr for Vls {
             return Err(VlsError::EmptyInput);
         }
 
-        // Early return for Any
+        // If the string is a single wildcard, return an error
         if s == "*" {
-            return Ok(Self::Any);
+            return Err(VlsError::ForbiddenAnyUsed);
         }
 
         // The next two checks are not strictly necessary, as we would try to parse
@@ -157,26 +147,21 @@ impl FromStr for Vls {
             return Err(VlsError::DuplicateConstraintVersions(duplicate_versions));
         }
 
-        Ok(Self::Constraints(constraints))
+        Ok(Self { constraints })
     }
 }
 
 impl Display for Vls {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Any => f.write_str("*"),
-            Self::Constraints(constraints) => {
-                let mut iter = constraints.iter();
-                if let Some(first) = iter.next() {
-                    first.fmt(f)?;
-                    for c in iter {
-                        f.write_str("|")?;
-                        c.fmt(f)?;
-                    }
-                }
-                Ok(())
+        let mut iter = self.constraints.iter();
+        if let Some(first) = iter.next() {
+            first.fmt(f)?;
+            for c in iter {
+                f.write_str("|")?;
+                c.fmt(f)?;
             }
         }
+        Ok(())
     }
 }
 
@@ -186,6 +171,10 @@ pub enum VlsError {
     /// The input string was empty.
     #[error("Empty vls input")]
     EmptyInput,
+
+    /// The input is a wildcard (`*`), which is not allowed.
+    #[error("'*' (vers syntax for matching all versions) is not allowed as a vls string")]
+    ForbiddenAnyUsed,
 
     /// The input contains characters not allowed by the VLS grammar.
     /// See [`Vls`] for more details on the grammar.
