@@ -23,9 +23,9 @@ fn parse_vers_prefix_is_error(#[case] input: &str) {
 }
 
 #[rstest]
-#[case::gem_scheme("gem/>=2.2.0")]
-#[case::only_scheme_delimiter("/>=2.2.0")]
-fn parse_bare_scheme_is_error(#[case] input: &str) {
+#[case::gem_type("gem/>=2.2.0")]
+#[case::only_type_delimiter("/>=2.2.0")]
+fn parse_contains_vers_type_is_error(#[case] input: &str) {
     let err = input.parse::<Vls>().unwrap_err();
     assert!(matches!(err, VlsError::ContainsVersType));
 }
