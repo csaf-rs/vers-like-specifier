@@ -190,7 +190,8 @@ pub enum VlsError {
     #[error("VLS must not contain a vers type component")]
     ContainsVersType,
 
-    /// One or more version strings contain characters outside the allowed grammar.
+    /// One or more constraints are invalid, for example due to constraints or version strings
+    /// being empty, or due to invalid characters in version strings.
     #[error("Invalid constraint(s): {}", .0.iter().map(std::string::ToString::to_string).collect::<Vec<_>>().join(", "))]
     InvalidConstraints(Vec<ConstraintError>),
 
