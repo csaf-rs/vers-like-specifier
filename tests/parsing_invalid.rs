@@ -1,6 +1,6 @@
 use rstest::rstest;
 use std::collections::BTreeSet;
-use vls::{VersionConstraintError, Vls, VlsError};
+use vls::{ConstraintError, Vls, VlsError};
 
 #[test]
 fn parse_empty_string_is_error() {
@@ -27,7 +27,7 @@ fn parse_vers_prefix_is_error(#[case] input: &str) {
 #[case::only_scheme_delimiter("/>=2.2.0")]
 fn parse_bare_scheme_is_error(#[case] input: &str) {
     let err = input.parse::<Vls>().unwrap_err();
-    assert!(matches!(err, VlsError::ContainsVersioningScheme));
+    assert!(matches!(err, VlsError::ContainsVersType));
 }
 
 #[rstest]
@@ -74,7 +74,7 @@ fn parse_empty_constraint_is_error(#[case] input: &str, #[case] expected_count: 
         assert!(
             errors
                 .iter()
-                .all(|e| matches!(e, VersionConstraintError::EmptyConstraint))
+                .all(|e| matches!(e, ConstraintError::EmptyConstraint))
         );
     }
 }
@@ -98,7 +98,7 @@ fn parse_empty_version_is_error(#[case] input: &str, #[case] expected_count: usi
         assert!(
             errors
                 .iter()
-                .all(|e| matches!(e, VersionConstraintError::EmptyVersion))
+                .all(|e| matches!(e, ConstraintError::EmptyConstraintVersion))
         );
     }
 }
@@ -119,7 +119,7 @@ fn parse_invalid_version_characters_is_error(
         assert_eq!(errors.len(), expected_chars.len());
         for (i, error) in errors.iter().enumerate() {
             match error {
-                VersionConstraintError::InvalidVersionCharacters(chars) => {
+                ConstraintError::InvalidConstraintVersionCharacters(chars) => {
                     assert_eq!(chars, &expected_chars[i]);
                 }
                 other => panic!("Expected InvalidVersionCharacters, got: {other:?}"),

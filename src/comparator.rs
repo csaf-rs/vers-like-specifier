@@ -1,16 +1,16 @@
 //! Comparator type for the csaf-rs/vls library.
 //!
 //! The `Comparator` enum represents the different types of comparators that can be used
-//! in version constraints, such as = (implicit or explicit), !=, <, <=, >, and >=.
+//! in constraints, such as = (implicit or explicit), !=, <, <=, >, and >=.
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::hash::{Hash, Hasher};
 use strum::AsRefStr;
 
-/// Comparator for version constraints.
+/// Comparator for constraints.
 ///
 /// This enum represents the different types of comparators that can be used
-/// in version constraints. Each comparator defines how a version is compared
+/// in constraints. Each comparator defines how a version is compared
 /// to the constraint version.
 ///
 /// # Equality

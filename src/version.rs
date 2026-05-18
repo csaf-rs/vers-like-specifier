@@ -1,4 +1,4 @@
-use crate::VersionConstraintError;
+use crate::ConstraintError;
 use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
@@ -18,16 +18,16 @@ impl VersionString {
 }
 
 impl FromStr for VersionString {
-    type Err = VersionConstraintError;
+    type Err = ConstraintError;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         if input.is_empty() {
-            return Err(VersionConstraintError::EmptyVersion);
+            return Err(ConstraintError::EmptyConstraintVersion);
         }
 
         let invalid_chars = collect_invalid_characters(input, VlsSpecialCharSet::VersionString);
         if let Some(invalid_chars) = invalid_chars {
-            return Err(VersionConstraintError::InvalidVersionCharacters(
+            return Err(ConstraintError::InvalidConstraintVersionCharacters(
                 invalid_chars,
             ));
         }
