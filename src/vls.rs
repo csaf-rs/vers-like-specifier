@@ -1,6 +1,6 @@
 //! The core [`Vls`] type.
 
-use crate::constraint::{VersionConstraint, VersionConstraintError, VersionString};
+use crate::constraint::{Constraint, ConstraintError, VersionString};
 use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
 use std::collections::{BTreeSet, HashSet};
 use std::fmt::{Display, Formatter, Result as FmtResult};
@@ -9,10 +9,10 @@ use thiserror::Error;
 
 /// A **Vers-like Specifier** (VLS).
 ///
-/// VLS is the `<version-constraint>` part of a [vers](https://github.com/package-url/vers-spec)
-/// URL *without* the `vers:<scheme>/` prefix.
+/// VLS is the `<constraints>` part of a [vers](https://github.com/package-url/vers-spec)
+/// URL *without* the `vers:<type>/` prefix.
 ///
-/// It is an ordered, `|`-separated list of [`VersionConstraint`] values.
+/// It is an ordered, `|`-separated list of [`Constraint`] values.
 ///
 /// Due to the unspecified format of the versions, only exact matching is possible and range containment checks are not supported.
 ///
@@ -27,7 +27,7 @@ use thiserror::Error;
 /// and
 /// [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range).
 ///
-/// There currently is no "official" grammar for vers-like specifier / the `<version-constraint>` part of
+/// There currently is no "official" grammar for vers-like specifier / the `<constraints>` part of
 /// vers. This is a best-effort attempt used for this library.
 ///
 /// **Note:** This grammar may need to be updated once vers has been ratified through ECMA / following changes
@@ -60,13 +60,13 @@ use thiserror::Error;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Vls {
-    /// An ordered, `|`-separated list of [`VersionConstraint`] values (always non-empty).
-    constraints: Vec<VersionConstraint>,
+    /// An ordered, `|`-separated list of [`Constraint`] values (always non-empty).
+    constraints: Vec<Constraint>,
 }
 
 impl Vls {
     /// Return the constraints.
-    pub fn constraints(&self) -> &[VersionConstraint] {
+    pub fn constraints(&self) -> &[Constraint] {
         &self.constraints
     }
 
@@ -93,7 +93,7 @@ impl FromStr for Vls {
         }
 
         // The next two checks are not strictly necessary, as we would try to parse
-        // a string containing the vers URI prefix and / or a scheme component as part of
+        // a string containing the vers URI prefix and / or a type component as part of
         // the first constraint, which would fail the parsing.
         // As this library is tightly coupled to csaf-rs, we still include them for easier /
         // more informative error handling there, as both indicate this might be a vers string.
@@ -103,10 +103,10 @@ impl FromStr for Vls {
             return Err(VlsError::ContainsVersPrefix);
         }
 
-        // `/` is not a valid character in the vls grammar, but is used as the scheme delimiter in vers.
-        // Its presence indicates the string contains a "<scheme>/" component
+        // `/` is not a valid character in the vls grammar, but is used as the type delimiter in vers.
+        // Its presence indicates the string contains a "<type>/" component
         if s.contains('/') {
-            return Err(VlsError::ContainsVersioningScheme);
+            return Err(VlsError::ContainsVersType);
         }
 
         // Reject any character that is not part of the 'constraints' grammar.
@@ -117,12 +117,12 @@ impl FromStr for Vls {
         // Split the constraints
         let parts: Vec<&str> = s.split('|').collect();
 
-        // Parse the constraints, generating parsed VersionConstraint or VersionConstraintErrors for each
-        let mut constraints: Vec<VersionConstraint> = Vec::with_capacity(parts.len());
-        let mut constraint_errors: Option<Vec<VersionConstraintError>> = None;
+        // Parse the constraints, generating parsed Constraint or ConstraintErrors for each
+        let mut constraints: Vec<Constraint> = Vec::with_capacity(parts.len());
+        let mut constraint_errors: Option<Vec<ConstraintError>> = None;
 
         for part in parts {
-            match part.parse::<VersionConstraint>() {
+            match part.parse::<Constraint>() {
                 Ok(constraint) => constraints.push(constraint),
                 Err(error) => constraint_errors.get_or_insert_default().push(error),
             }
@@ -185,14 +185,15 @@ pub enum VlsError {
     #[error("VLS must not contain a 'vers:' URI prefix")]
     ContainsVersPrefix,
 
-    /// The input most likely contains a `vers` versioning-scheme
-    /// component (e.g. `gem/>=2.2.0`), indicated by the presence of the scheme delimiter `/`.
-    #[error("VLS must not contain a versioning-scheme component")]
-    ContainsVersioningScheme,
+    /// The input most likely contains a vers type
+    /// component (e.g. `gem` in `gem/>=2.2.0`), indicated by the presence of the type delimiter `/`.
+    #[error("VLS must not contain a vers type component")]
+    ContainsVersType,
 
-    /// One or more version strings contain characters outside the allowed grammar.
+    /// One or more constraints are invalid, for example due to constraints or version strings
+    /// being empty, or due to invalid characters in version strings.
     #[error("Invalid constraint(s): {}", .0.iter().map(std::string::ToString::to_string).collect::<Vec<_>>().join(", "))]
-    InvalidConstraints(Vec<VersionConstraintError>),
+    InvalidConstraints(Vec<ConstraintError>),
 
     /// The input contains duplicate constraint versions, irrespective of their comparators.
     #[error("Duplicate constraint version(s): {}", .0.iter().map(|s| format!("'{s}'")).collect::<Vec<_>>().join(", "))]
