@@ -28,10 +28,10 @@ jobs:
       - uses: actions/checkout@v7
       - name: Update rustup
         run: rustup update stable --no-self-update
-      - name: Format check
-        run: |
-          rustup component add rustfmt
-          cargo fmt --all -- --check -l
+      - name: Run shared format check
+        uses: csaf-rs/shared-workflows/.github/actions/rust-checks@main
+        with:
+          run-clippy: "false"
       - name: Publish dry-run
         if: github.ref_type != 'tag'
         run: cargo publish --dry-run --verbose --no-verify --locked
@@ -61,10 +61,10 @@ jobs:
         run: |
           rustup override set "${{ steps.rust-version.outputs.version }}"
           rustup default "${{ steps.rust-version.outputs.version }}"
-      - name: Install clippy
-        run: rustup component add clippy
-      - name: Clippy check
-        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Run shared clippy check
+        uses: csaf-rs/shared-workflows/.github/actions/rust-checks@main
+        with:
+          run-format: "false"
       - name: Build
         run: cargo build --locked --release --verbose
       - name: Run tests
