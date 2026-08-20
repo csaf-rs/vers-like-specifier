@@ -70,3 +70,6 @@ jobs:
         run: cargo build --locked --release --verbose
       - name: Run tests
         run: cargo test --locked --release --verbose
+
+  coverage:
+    uses: csaf-rs/shared-workflows/.github/workflows/rust-coverage.yml@400ee021e6bdeb7e2808264749e2fe20b25401e8 # v1.3.0
