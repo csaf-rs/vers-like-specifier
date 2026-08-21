@@ -6,7 +6,7 @@ use vls::Vls;
 
 /// Build a vls string with `n` constraints, e.g. ">=1.0.0|!=1.0.1|<=1.0.2|..."
 fn build_vls_string(n: usize) -> String {
-    let comparators = [">=", "!=", "<=", ">", "<", "=", ""];
+    let comparators = [">=", "!=", "<=", ">", "<", ""];
     let mut buf = String::new();
     for i in 0..n {
         if i > 0 {

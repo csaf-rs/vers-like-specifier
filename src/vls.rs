@@ -6,6 +6,7 @@ use std::collections::{BTreeSet, HashSet};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 use thiserror::Error;
+use crate::Comparator;
 
 /// A **Vers-like Specifier** (VLS).
 ///
@@ -36,7 +37,7 @@ use thiserror::Error;
 /// ```text
 /// vls            = constraint *( "|" constraint )
 /// constraint     = comparator version-string / version-string
-/// comparator     = "!=" / "<=" / ">=" / "=" / "<" / ">"
+/// comparator     = "!=" / "<=" / ">=" / "<" / ">"
 /// version-string = 1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )
 /// ```
 ///
@@ -71,9 +72,9 @@ impl Vls {
     }
 
     /// Return `true` if this specifier pins exactly one version,
-    /// i.e. it contains a single equal constraint [`EqualImplicit`](crate::comparator::Comparator::EqualImplicit) or [`EqualExplicit`](crate::comparator::Comparator::EqualExplicit)
+    /// i.e. it contains a single equal constraint [`Comparator::Equal`]
     pub fn is_single_version(&self) -> bool {
-        self.constraints.len() == 1 && self.constraints[0].comparator().is_equal()
+        self.constraints.len() == 1 && matches!(self.constraints[0].comparator(), Comparator::Equal)
     }
 }
 

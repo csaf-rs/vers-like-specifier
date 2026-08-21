@@ -80,7 +80,7 @@ fn parse_empty_constraint_is_error(#[case] input: &str, #[case] expected_count: 
 }
 
 #[rstest]
-#[case::bare_equal("=", 1)]
+#[case::bare_not_equal("!=", 1)]
 #[case::bare_not_equal("!=", 1)]
 #[case::bare_less_than("<", 1)]
 #[case::bare_less_than_or_equal("<=", 1)]
@@ -89,7 +89,7 @@ fn parse_empty_constraint_is_error(#[case] input: &str, #[case] expected_count: 
 #[case::two_bare_comparators(">=|<=", 2)]
 #[case::bare_with_valid(">|<=2.0", 1)]
 #[case::valid_with_bare(">=1.0|<", 1)]
-#[case::multiple_bare("=|!=|<", 3)]
+#[case::multiple_bare("!=|<", 2)]
 fn parse_empty_version_is_error(#[case] input: &str, #[case] expected_count: usize) {
     let err = input.parse::<Vls>().unwrap_err();
     assert!(matches!(err, VlsError::InvalidConstraints(_)));
@@ -104,6 +104,8 @@ fn parse_empty_version_is_error(#[case] input: &str, #[case] expected_count: usi
 }
 
 #[rstest]
+#[case::bare_explicit_equals("=", vec![vec!['=']])]
+#[case::explicit_equals("=3.2.1", vec![vec!['=']])]
 #[case::equals_in_version(">=1.0=2", vec![vec!['=']])]
 #[case::bang_in_version(">=1.0!beta", vec![vec!['!']])]
 #[case::less_than_in_version(">=1.0<2", vec![vec!['<']])]
@@ -131,8 +133,8 @@ fn parse_invalid_version_characters_is_error(
 #[rstest]
 #[case::same_comparator(">1.0|>1.0", vec!["1.0"])]
 #[case::different_comparator("!=3.0|>3.0", vec!["3.0"])]
-#[case::different_comparator_impl_expl_equals("!=3.0|=3.0", vec!["3.0"])]
-#[case::triple_duplicate(">=1.0|!=1.0|=1.0", vec!["1.0"])]
+#[case::different_comparator_equal_and_not_equal("!=3.0|3.0", vec!["3.0"])]
+#[case::triple_duplicate(">=1.0|!=1.0|1.0", vec!["1.0"])]
 #[case::multiple_different_duplicates("1.0|>2.0|!=1.0|>=2.0", vec!["1.0", "2.0"])]
 #[case::duplicate_unique_mixed("!=1.0|<=2.0|>1.0", vec!["1.0"])]
 fn parse_duplicate_constraints_is_error(#[case] input: &str, #[case] expected: Vec<&str>) {
