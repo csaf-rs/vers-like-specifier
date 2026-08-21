@@ -81,7 +81,6 @@ fn parse_empty_constraint_is_error(#[case] input: &str, #[case] expected_count: 
 
 #[rstest]
 #[case::bare_not_equal("!=", 1)]
-#[case::bare_not_equal("!=", 1)]
 #[case::bare_less_than("<", 1)]
 #[case::bare_less_than_or_equal("<=", 1)]
 #[case::bare_greater_than(">", 1)]
