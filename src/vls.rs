@@ -1,12 +1,12 @@
 //! The core [`Vls`] type.
 
+use crate::Comparator;
 use crate::constraint::{Constraint, ConstraintError, VersionString};
 use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
 use std::collections::{BTreeSet, HashSet};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 use thiserror::Error;
-use crate::Comparator;
 
 /// A **Vers-like Specifier** (VLS).
 ///
