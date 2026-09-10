@@ -14,18 +14,11 @@ It represents a `|`-separated list of constraints each consisting of an implicit
 
 ## Installation
 
-Add `vls` to your `Cargo.toml`:
+Add `vls` to your `Cargo.toml`. The package is published on https://crates.io/crates/vls:
 
 ```toml
 [dependencies]
 vls = "0.1"
-```
-
-### Note: This crate has not yet been published to [crates.io](https://crates.io). In the meantime, use a git dependency:
-
-```toml
-[dependencies]
-vls = { git = "https://github.com/csaf-rs/vls" }
 ```
 
 ## Usage
