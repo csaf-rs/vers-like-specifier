@@ -5,7 +5,7 @@ use std::str::FromStr;
 use thiserror::Error;
 
 /// A single constraint pairing a [`Comparator`] with a validated [`VersionString`].
-#[derive(Clone, PartialEq, Eq, Debug, Hash)]
+#[derive(Clone, PartialEq, Eq, Debug, Hash, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 pub struct Constraint {
     comparator: Comparator,

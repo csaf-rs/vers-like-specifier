@@ -1,11 +1,14 @@
 //! The core [`Vls`] type.
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 use crate::constraint::{Constraint, ConstraintError, VersionString};
 use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
+pub use crate::vls_error::VlsError;
 use std::collections::{BTreeSet, HashSet};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
-use thiserror::Error;
 
 /// A **Vers-like Specifier** (VLS).
 ///
@@ -58,8 +61,8 @@ use thiserror::Error;
 /// assert_eq!(vls.constraints().len(), 4);
 /// assert_eq!(vls.to_string(), ">10.9a|!=10.9c|!=10.9f|<=10.9k");
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub struct Vls {
     /// An ordered, `|`-separated list of [`Constraint`] values (always non-empty).
     constraints: Vec<Constraint>,
@@ -75,6 +78,25 @@ impl Vls {
     /// i.e. it contains a single equal constraint [`EqualImplicit`](crate::comparator::Comparator::EqualImplicit) or [`EqualExplicit`](crate::comparator::Comparator::EqualExplicit)
     pub fn is_single_version(&self) -> bool {
         self.constraints.len() == 1 && self.constraints[0].comparator().is_equal()
+    }
+}
+
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+impl Vls {
+    /// Parse a `vls` as a [`Vls`] string, exposed as the static `Vls.parse(vls)` in JS.
+    ///
+    /// # Errors
+    /// Throws a JS `Error` if `vls` is not a valid vers-like specifier.
+    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = parse))]
+    pub fn wasm_parse(vls: &str) -> Result<Vls, VlsError> {
+        vls.parse()
+    }
+
+    /// Return `true` if this specifier pins exactly one version, exposed as the
+    /// instance method `vls.isSingleVersion()` in JS.
+    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = isSingleVersion))]
+    pub fn wasm_is_single_version(&self) -> bool {
+        self.is_single_version()
     }
 }
 
@@ -164,40 +186,4 @@ impl Display for Vls {
         }
         Ok(())
     }
-}
-
-/// Errors that can occur when parsing a vls string.
-#[derive(Error, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
-pub enum VlsError {
-    /// The input string was empty.
-    #[error("Empty vls input")]
-    EmptyInput,
-
-    /// The input is a wildcard (`*`), which is not allowed.
-    #[error("'*' (vers syntax for matching all versions) is not allowed as a vls string")]
-    ForbiddenAnyUsed,
-
-    /// The input contains characters not allowed by the VLS grammar.
-    /// See [`Vls`] for more details on the grammar.
-    #[error("Invalid character(s) in VLS: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
-    InvalidCharacters(Vec<char>),
-
-    /// The input contains a `vers:` URI prefix, which is not allowed in a VLS string.
-    #[error("VLS must not contain a 'vers:' URI prefix")]
-    ContainsVersPrefix,
-
-    /// The input most likely contains a vers type
-    /// component (e.g. `gem` in `gem/>=2.2.0`), indicated by the presence of the type delimiter `/`.
-    #[error("VLS must not contain a vers type component")]
-    ContainsVersType,
-
-    /// One or more constraints are invalid, for example due to constraints or version strings
-    /// being empty, or due to invalid characters in version strings.
-    #[error("Invalid constraint(s): {}", .0.iter().map(std::string::ToString::to_string).collect::<Vec<_>>().join(", "))]
-    InvalidConstraints(Vec<ConstraintError>),
-
-    /// The input contains duplicate constraint versions, irrespective of their comparators.
-    #[error("Duplicate constraint version(s): {}", .0.iter().map(|s| format!("'{s}'")).collect::<Vec<_>>().join(", "))]
-    DuplicateConstraintVersions(BTreeSet<String>),
 }
