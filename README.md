@@ -45,6 +45,27 @@ assert_eq!(constraints[1].comparator(), &Comparator::LessThan);
 assert_eq!(constraints[1].version().to_string(), "2.0.0");
 ```
 
+### JavaScript / WASM Usage
+
+```js
+import init, { Vls, Constraint, Comparator } from "@csaf-rs/vls";
+
+await init();
+
+const vls = Vls.parse(">=1.0.0|<2.0.0");
+console.log(vls.isSingleVersion()); // false
+
+const constraint = new Constraint(Comparator.GreaterThanOrEqual, "1.0.0");
+const single = new Vls([constraint]);
+console.log(single.isSingleVersion()); // true
+
+try {
+  Vls.parse("*");
+} catch (e) {
+  console.error(e); // Error: '*' (vers syntax for matching all versions) is not allowed as a vls string
+}
+```
+
 ## License
 
 Licensed under the [Apache License, Version 2.0](LICENSE).

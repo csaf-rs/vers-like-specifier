@@ -6,6 +6,8 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::hash::{Hash, Hasher};
 use strum::AsRefStr;
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Comparator for constraints.
 ///
@@ -23,8 +25,8 @@ use strum::AsRefStr;
 ///
 /// If you need to distinguish between the two variants, use pattern matching to compare the enums or
 /// use [`Comparator::is_same_variant()`] instead of an equality check.
-#[derive(Debug, Clone, Copy, AsRefStr,  serde::Serialize, serde::Deserialize)]
-#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
+#[derive(Debug, Clone, Copy, AsRefStr, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub enum Comparator {
     /// Implicit equal - The version must be exactly equal to the constraint version.
     #[strum(serialize = "")]
