@@ -6,6 +6,7 @@ use thiserror::Error;
 
 /// A single constraint pairing a [`Comparator`] with a validated [`VersionString`].
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 pub struct Constraint {
     comparator: Comparator,
     version: VersionString,
@@ -53,6 +54,7 @@ impl Display for Constraint {
 
 /// Errors specific to a single constraint within a VLS string.
 #[derive(Error, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 pub enum ConstraintError {
     /// A constraint segment was empty (e.g. from `||`, a leading `|`, or a trailing `|`).
     #[error("Empty constraint")]

@@ -59,6 +59,7 @@ use thiserror::Error;
 /// assert_eq!(vls.to_string(), ">10.9a|!=10.9c|!=10.9f|<=10.9k");
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 pub struct Vls {
     /// An ordered, `|`-separated list of [`Constraint`] values (always non-empty).
     constraints: Vec<Constraint>,
@@ -167,6 +168,7 @@ impl Display for Vls {
 
 /// Errors that can occur when parsing a vls string.
 #[derive(Error, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 pub enum VlsError {
     /// The input string was empty.
     #[error("Empty vls input")]
