@@ -40,10 +40,6 @@ pub enum VlsError {
     #[error("Duplicate constraint version(s): {}", .0.iter().map(|s| format!("'{s}'")).collect::<Vec<_>>().join(", "))]
     DuplicateConstraintVersions(BTreeSet<String>),
 
-    /// The provided constraints list was empty.
-    #[error("At least one constraint is required")]
-    EmptyConstraints,
-
     /// A value could not be (de)serialized across the wasm ABI boundary.
     #[cfg(feature = "wasm")]
     #[error("WASM (de)serialization error: {0}")]

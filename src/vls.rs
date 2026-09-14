@@ -79,48 +79,10 @@ impl Vls {
     pub fn is_single_version(&self) -> bool {
         self.constraints.len() == 1 && self.constraints[0].comparator().is_equal()
     }
-
-    /// Construct a [`Vls`] directly from an already-parsed, non-empty list of [`Constraint`]s.
-    ///
-    /// # Errors
-    /// Returns [`VlsError::EmptyConstraints`] if `constraints` is empty, or
-    /// [`VlsError::DuplicateConstraintVersions`] if `constraints` contains multiple
-    /// constraints with the same version, irrespective of their comparators.
-    pub fn try_from_constraints(constraints: Vec<Constraint>) -> Result<Self, VlsError> {
-        if constraints.is_empty() {
-            return Err(VlsError::EmptyConstraints);
-        }
-
-        // Check for duplicate constraints
-        let mut seen_versions: HashSet<&VersionString> = HashSet::new();
-        let mut duplicate_versions: Option<BTreeSet<String>> = None;
-        for c in &constraints {
-            if !seen_versions.insert(c.version()) {
-                duplicate_versions
-                    .get_or_insert_default()
-                    .insert(c.version().to_string());
-            }
-        }
-        if let Some(duplicate_versions) = duplicate_versions {
-            return Err(VlsError::DuplicateConstraintVersions(duplicate_versions));
-        }
-
-        Ok(Self { constraints })
-    }
 }
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 impl Vls {
-    /// Construct a [`Vls`] directly from a non-empty list of [`Constraint`]s, exposed as
-    /// `new Vls(constraints)` in JS.
-    ///
-    /// # Errors
-    /// Throws a JS `Error` if `constraints` is empty or contains duplicate versions.
-    #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
-    pub fn wasm_new(constraints: Vec<Constraint>) -> Result<Vls, VlsError> {
-        Self::try_from_constraints(constraints)
-    }
-
     /// Parse a `vls` as a [`Vls`] string, exposed as the static `Vls.parse(vls)` in JS.
     ///
     /// # Errors
@@ -194,7 +156,21 @@ impl FromStr for Vls {
             return Err(VlsError::InvalidConstraints(constraint_errors));
         }
 
-        Self::try_from_constraints(constraints)
+        // Check for duplicate constraints
+        let mut seen_versions: HashSet<&VersionString> = HashSet::new();
+        let mut duplicate_versions: Option<BTreeSet<String>> = None;
+        for c in &constraints {
+            if !seen_versions.insert(c.version()) {
+                duplicate_versions
+                    .get_or_insert_default()
+                    .insert(c.version().to_string());
+            }
+        }
+        if let Some(duplicate_versions) = duplicate_versions {
+            return Err(VlsError::DuplicateConstraintVersions(duplicate_versions));
+        }
+
+        Ok(Self { constraints })
     }
 }
 

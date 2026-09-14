@@ -55,9 +55,11 @@ await init();
 const vls = Vls.parse(">=1.0.0|<2.0.0");
 console.log(vls.isSingleVersion()); // false
 
-const constraint = new Constraint(Comparator.GreaterThanOrEqual, "1.0.0");
-const single = new Vls([constraint]);
+const single = Vls.parse("=1.0.0");
 console.log(single.isSingleVersion()); // true
+
+const constraint = new Constraint(Comparator.GreaterThanOrEqual, "1.0.0");
+console.log(constraint.version); // "1.0.0"
 
 try {
   Vls.parse("*");
