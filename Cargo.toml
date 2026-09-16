@@ -10,6 +10,9 @@ keywords = ["vls", "vers-like", "purl", "vers", "parser"]
 categories = ["parser-implementations"]
 rust-version = "1.88.0"
 
+[lints.rust]
+unsafe_code = "forbid"
+
 [dependencies]
 strum = { version = "0.28.0", features = ["derive"] }
 thiserror = "2"
