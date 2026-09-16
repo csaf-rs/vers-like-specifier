@@ -33,14 +33,14 @@ jobs:
         run: rustup update stable --no-self-update
       - name: Extract Rust versions
         id: rust-versions
-        uses: csaf-rs/shared-workflows/.github/actions/rust-versions@4828cd545465d4faade7eb410621ad7d8954f0dc # v1.9.0
+        uses: csaf-rs/shared-workflows/.github/actions/rust-versions@a55e51a118eb3d0beae0fed4a616eec29dc01ca2 # v1.10.0
       - name: Run shared format and doc checks
-        uses: csaf-rs/shared-workflows/.github/actions/rust-checks@4828cd545465d4faade7eb410621ad7d8954f0dc # v1.9.0
+        uses: csaf-rs/shared-workflows/.github/actions/rust-checks@a55e51a118eb3d0beae0fed4a616eec29dc01ca2 # v1.10.0
         with:
           run-clippy: "false"
       - name: Publish dry-run
         if: github.ref_type != 'tag'
-        uses: csaf-rs/shared-workflows/.github/actions/cargo-publish-dry-run@4828cd545465d4faade7eb410621ad7d8954f0dc # v1.9.0
+        uses: csaf-rs/shared-workflows/.github/actions/cargo-publish-dry-run@a55e51a118eb3d0beae0fed4a616eec29dc01ca2 # v1.10.0
 
   build:
     needs: prepare
@@ -59,7 +59,7 @@ jobs:
           rustup override set "${{ matrix.version }}"
           rustup default "${{ matrix.version }}"
       - name: Run shared clippy check
-        uses: csaf-rs/shared-workflows/.github/actions/rust-checks@4828cd545465d4faade7eb410621ad7d8954f0dc # v1.9.0
+        uses: csaf-rs/shared-workflows/.github/actions/rust-checks@a55e51a118eb3d0beae0fed4a616eec29dc01ca2 # v1.10.0
         with:
           run-format: "false"
           run-doc: "false"
@@ -69,4 +69,4 @@ jobs:
         run: cargo test --locked --release --verbose
 
   coverage:
-    uses: csaf-rs/shared-workflows/.github/workflows/rust-coverage.yml@4828cd545465d4faade7eb410621ad7d8954f0dc # v1.9.0
+    uses: csaf-rs/shared-workflows/.github/workflows/rust-coverage.yml@a55e51a118eb3d0beae0fed4a616eec29dc01ca2 # v1.10.0
