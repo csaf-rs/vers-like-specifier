@@ -1,5 +1,7 @@
 # vls
 
+[![crates.io](https://img.shields.io/crates/v/vls.svg)](https://crates.io/crates/vls)
+
 A Rust library for parsing and validating **Vers-like Specifiers** (vls) as defined in [CSAF 2.0](https://docs.oasis-open.org/csaf/csaf/v2.0/os/csaf-v2.0-os.html#31232-branches-type---name-under-product-version-range) and [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range).
 
 vls is the `<constraints>` portion of a [vers](https://github.com/package-url/vers-spec) URL **without** the `vers:<type>/` prefix.
@@ -14,18 +16,11 @@ It represents a `|`-separated list of constraints each consisting of an implicit
 
 ## Installation
 
-Add `vls` to your `Cargo.toml`:
+Add `vls` to your `Cargo.toml`. The package is published on https://crates.io/crates/vls:
 
 ```toml
 [dependencies]
 vls = "0.1"
-```
-
-### Note: This crate has not yet been published to [crates.io](https://crates.io). In the meantime, use a git dependency:
-
-```toml
-[dependencies]
-vls = { git = "https://github.com/csaf-rs/vls" }
 ```
 
 ## Usage
