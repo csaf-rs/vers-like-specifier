@@ -1,10 +1,9 @@
 //! Comparator type for the csaf-rs/vls library.
 //!
 //! The `Comparator` enum represents the different types of comparators that can be used
-//! in constraints, such as = (implicit or explicit), !=, <, <=, >, and >=.
+//! in constraints.
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::hash::{Hash, Hasher};
 use strum::AsRefStr;
 
 /// Comparator for constraints.
@@ -12,25 +11,11 @@ use strum::AsRefStr;
 /// This enum represents the different types of comparators that can be used
 /// in constraints. Each comparator defines how a version is compared
 /// to the constraint version.
-///
-/// # Equality
-///
-/// [`Comparator::EqualImplicit`] and [`Comparator::EqualExplicit`] are considered
-/// equal by [`PartialEq`] (i.e. `EqualImplicit == EqualExplicit` is `true`).
-///
-/// However, their [`Display`] representations differ: `EqualImplicit` formats as `""` (empty string)
-/// while `EqualExplicit` formats as `"="`.
-///
-/// If you need to distinguish between the two variants, use pattern matching to compare the enums or
-/// use [`Comparator::is_same_variant()`] instead of an equality check.
-#[derive(Debug, Clone, Copy, AsRefStr)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, AsRefStr)]
 pub enum Comparator {
-    /// Implicit equal - The version must be exactly equal to the constraint version.
+    /// Equal (implicit) - The version must be exactly equal to the constraint version.
     #[strum(serialize = "")]
-    EqualImplicit,
-    /// Explicit equal (=) - The version must be exactly equal to the constraint version.
-    #[strum(serialize = "=")]
-    EqualExplicit,
+    Equal,
     /// Not equal (!=) - The version must not be equal to the constraint version.
     #[strum(serialize = "!=")]
     NotEqual,
@@ -48,35 +33,6 @@ pub enum Comparator {
     GreaterThanOrEqual,
 }
 
-/// [`EqualImplicit`](Comparator::EqualImplicit) and
-/// [`EqualExplicit`](Comparator::EqualExplicit) are treated as equal because they
-/// carry the same semantic meaning ("exactly this version"). All other variants
-/// are compared by discriminant.
-impl PartialEq for Comparator {
-    fn eq(&self, other: &Self) -> bool {
-        if self.is_equal() && other.is_equal() {
-            return true;
-        }
-        core::mem::discriminant(self) == core::mem::discriminant(other)
-    }
-}
-
-impl Eq for Comparator {}
-
-impl Hash for Comparator {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        let disc: u8 = match self {
-            Comparator::EqualImplicit | Comparator::EqualExplicit => 0,
-            Comparator::NotEqual => 1,
-            Comparator::LessThan => 2,
-            Comparator::LessThanOrEqual => 3,
-            Comparator::GreaterThan => 4,
-            Comparator::GreaterThanOrEqual => 5,
-        };
-        disc.hash(state);
-    }
-}
-
 impl Display for Comparator {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str(self.as_ref())
@@ -84,19 +40,6 @@ impl Display for Comparator {
 }
 
 impl Comparator {
-    /// Returns true if the comparator represents equality (implicit or explicit)
-    pub const fn is_equal(&self) -> bool {
-        matches!(self, Comparator::EqualImplicit | Comparator::EqualExplicit)
-    }
-
-    /// Returns `true` if `self` and `other` are the exact same variant.
-    ///
-    /// This differs from [`PartialEq`], which treats [`EqualImplicit`](Comparator::EqualImplicit)
-    /// and [`EqualExplicit`](Comparator::EqualExplicit) as equal.
-    pub fn is_same_variant(&self, other: &Self) -> bool {
-        core::mem::discriminant(self) == core::mem::discriminant(other)
-    }
-
     /// Extracts a comparator from a constraint string.
     ///
     /// Returns a tuple of the matched [`Comparator`] and the remaining version string.
@@ -118,12 +61,8 @@ impl Comparator {
             (Comparator::GreaterThan, stripped)
         } else if let Some(stripped) = constraint_str.strip_prefix(Comparator::LessThan.as_ref()) {
             (Comparator::LessThan, stripped)
-        } else if let Some(stripped) =
-            constraint_str.strip_prefix(Comparator::EqualExplicit.as_ref())
-        {
-            (Comparator::EqualExplicit, stripped)
         } else {
-            (Comparator::EqualImplicit, constraint_str)
+            (Comparator::Equal, constraint_str)
         }
     }
 }
