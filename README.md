@@ -16,7 +16,7 @@ It represents a `|`-separated list of constraints each consisting of an implicit
 
 ## Installation
 
-Add `vers-like-specifier` to your `Cargo.toml`. The package is published on https://crates.io/crates/vls:
+Add `vers-like-specifier` to your `Cargo.toml`. The package is published on https://crates.io/crates/vers-like-specifier:
 
 ```toml
 [dependencies]
