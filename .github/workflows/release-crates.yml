@@ -1,0 +1,14 @@
+name: release-crates
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish-crates:
+    permissions:
+      contents: read
+      id-token: write
+    uses: csaf-rs/shared-workflows/.github/workflows/cargo-publish.yml@a55e51a118eb3d0beae0fed4a616eec29dc01ca2 # v1.10.0
+    with:
+      environment: release
