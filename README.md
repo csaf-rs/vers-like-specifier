@@ -1,10 +1,10 @@
-# vls
+# vers-like-specifier
 
-[![crates.io](https://img.shields.io/crates/v/vls.svg)](https://crates.io/crates/vls)
+[![crates.io](https://img.shields.io/crates/v/vers-like-specifier.svg)](https://crates.io/crates/vers-like-specifier)
 
 A Rust library for parsing and validating **Vers-like Specifiers** (vls) as defined in [CSAF 2.0](https://docs.oasis-open.org/csaf/csaf/v2.0/os/csaf-v2.0-os.html#31232-branches-type---name-under-product-version-range) and [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range).
 
-vls is the `<constraints>` portion of a [vers](https://github.com/package-url/vers-spec) URL **without** the `vers:<type>/` prefix.
+vers-like-specifier is the `<constraints>` portion of a [vers](https://github.com/package-url/vers-spec) URL **without** the `vers:<type>/` prefix.
 
 It represents a `|`-separated list of constraints each consisting of an implicit or explicit comparator and a version string.
 
@@ -16,17 +16,17 @@ It represents a `|`-separated list of constraints each consisting of an implicit
 
 ## Installation
 
-Add `vls` to your `Cargo.toml`. The package is published on https://crates.io/crates/vls:
+Add `vers-like-specifier` to your `Cargo.toml`. The package is published on https://crates.io/crates/vls:
 
 ```toml
 [dependencies]
-vls = "0.1"
+vers-like-specifier = "0.1"
 ```
 
 ## Usage
 
 ```rust
-use vls::{Vls, Comparator};
+use vers_like_specifier::{Vls, Comparator};
 
 let vls: Vls = ">=1.0.0|<2.0.0".parse().unwrap();
 assert_eq!(vls.constraints().len(), 2);
