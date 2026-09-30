@@ -1,6 +1,6 @@
 use rstest::rstest;
 use std::collections::BTreeSet;
-use vls::{ConstraintError, Vls, VlsError};
+use vers_like_specifier::{ConstraintError, Vls, VlsError};
 
 #[test]
 fn parse_empty_string_is_error() {

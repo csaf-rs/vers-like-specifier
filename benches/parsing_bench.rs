@@ -2,7 +2,7 @@ use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use std::fmt::Write;
 use std::hint::black_box;
 use std::str::FromStr;
-use vls::Vls;
+use vers_like_specifier::Vls;
 
 /// Build a vls string with `n` constraints, e.g. ">=1.0.0|!=1.0.1|<=1.0.2|..."
 fn build_vls_string(n: usize) -> String {

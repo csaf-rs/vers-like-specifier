@@ -50,7 +50,7 @@ use thiserror::Error;
 /// # Examples
 ///
 /// ```
-/// use vls::Vls;
+/// use vers_like_specifier::Vls;
 ///
 /// let vls: Vls = "<=2".parse().unwrap();
 /// assert_eq!(vls.constraints().len(), 1);

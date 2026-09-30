@@ -1,5 +1,5 @@
 use rstest::rstest;
-use vls::{Comparator, Vls};
+use vers_like_specifier::{Comparator, Vls};
 
 #[rstest]
 #[case("<=2", Comparator::LessThanOrEqual, "2", false)]
