@@ -82,7 +82,8 @@ impl Vls {
     }
 }
 
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
+#[cfg(feature = "wasm")]
+#[wasm_bindgen]
 impl Vls {
     /// Parse a `vls` as a [`Vls`] string, exposed as the static `Vls.parse(vls)` in JS.
     ///

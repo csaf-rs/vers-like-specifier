@@ -26,7 +26,8 @@ impl Constraint {
     }
 }
 
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
+#[cfg(feature = "wasm")]
+#[wasm_bindgen]
 impl Constraint {
     /// Construct a new [`Constraint`] from a [`Comparator`] and a version string, validating
     /// the version string against the VLS grammar. Exposed as `new Constraint(comparator, version)`

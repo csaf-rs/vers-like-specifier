@@ -43,7 +43,7 @@ assert_eq!(constraints[1].version().to_string(), "2.0.0");
 ### JavaScript / WASM Usage
 
 ```js
-import init, { Vls, Constraint, Comparator } from "@csaf-rs/vls";
+import init, { Vls, Constraint, Comparator } from "@csaf-rs/vers-like-specifier";
 
 await init();
 
