@@ -13,7 +13,10 @@ use wasm_bindgen::prelude::wasm_bindgen;
 /// This enum represents the different types of comparators that can be used
 /// in constraints. Each comparator defines how a version is compared
 /// to the constraint version.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, AsRefStr)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, AsRefStr, serde::Serialize, serde::Deserialize,
+)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub enum Comparator {
     /// Equal (implicit) - The version must be exactly equal to the constraint version.
     #[strum(serialize = "")]
