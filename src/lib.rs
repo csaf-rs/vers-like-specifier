@@ -26,3 +26,7 @@ mod constraint;
 mod valid_chars;
 mod version;
 mod vls;
+mod vls_error;
+
+#[cfg(feature = "wasm")]
+pub mod wasm;

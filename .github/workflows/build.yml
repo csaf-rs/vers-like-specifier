@@ -67,6 +67,52 @@ jobs:
         run: cargo build --locked --release --verbose
       - name: Run tests
         run: cargo test --locked --release --verbose
+      - name: Add wasm target
+        if: matrix.version == needs.prepare.outputs.stable-version
+        run: rustup target add wasm32-unknown-unknown
+      - name: Install wasm-pack
+        if: matrix.version == needs.prepare.outputs.stable-version
+        run: cargo install wasm-pack
+      - name: Run wasm tests
+        if: matrix.version == needs.prepare.outputs.stable-version
+        run: wasm-pack test --node -- --features wasm
+
+  publish-crates:
+    permissions:
+      contents: read
+      id-token: write
+    needs:
+      - build
+    uses: csaf-rs/shared-workflows/.github/workflows/cargo-publish.yml@c2f5f2066f1d96c12c1e33a8dea1fceb5eb37366 # v1.12.0
+    with:
+      environment: release
+
+  publish-npm:
+    runs-on: ubuntu-latest
+    environment: release    
+    permissions:
+      contents: read
+      id-token: write
+    needs:
+      - build
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: 'true'
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Build WASM bindings
+        run: |
+          cargo install wasm-pack --locked
+          wasm-pack build --target web --out-dir pkg --scope csaf-rs -- --features wasm
+      - name: Publish to NPM
+        working-directory: ./pkg
+        run: |
+          npm publish --provenance
 
   coverage:
     uses: csaf-rs/shared-workflows/.github/workflows/rust-coverage.yml@c2f5f2066f1d96c12c1e33a8dea1fceb5eb37366 # v1.12.0
