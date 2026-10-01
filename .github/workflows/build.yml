@@ -68,10 +68,13 @@ jobs:
       - name: Run tests
         run: cargo test --locked --release --verbose
       - name: Add wasm target
+        if: matrix.version == needs.prepare.outputs.stable-version
         run: rustup target add wasm32-unknown-unknown
       - name: Install wasm-pack
+        if: matrix.version == needs.prepare.outputs.stable-version
         run: cargo install wasm-pack
       - name: Run wasm tests
+        if: matrix.version == needs.prepare.outputs.stable-version
         run: wasm-pack test --node -- --features wasm
 
   publish-crates:
