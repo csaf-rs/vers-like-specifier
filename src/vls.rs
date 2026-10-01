@@ -3,6 +3,7 @@
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
+use crate::Comparator;
 use crate::constraint::{Constraint, ConstraintError, VersionString};
 use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
 pub use crate::vls_error::VlsError;
@@ -39,7 +40,7 @@ use std::str::FromStr;
 /// ```text
 /// vls            = constraint *( "|" constraint )
 /// constraint     = comparator version-string / version-string
-/// comparator     = "!=" / "<=" / ">=" / "=" / "<" / ">"
+/// comparator     = "!=" / "<=" / ">=" / "<" / ">"
 /// version-string = 1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )
 /// ```
 ///
@@ -52,7 +53,7 @@ use std::str::FromStr;
 /// # Examples
 ///
 /// ```
-/// use vls::Vls;
+/// use vers_like_specifier::Vls;
 ///
 /// let vls: Vls = "<=2".parse().unwrap();
 /// assert_eq!(vls.constraints().len(), 1);
@@ -75,9 +76,9 @@ impl Vls {
     }
 
     /// Return `true` if this specifier pins exactly one version,
-    /// i.e. it contains a single equal constraint [`EqualImplicit`](crate::comparator::Comparator::EqualImplicit) or [`EqualExplicit`](crate::comparator::Comparator::EqualExplicit)
+    /// i.e. it contains a single equal constraint [`Comparator::Equal`]
     pub fn is_single_version(&self) -> bool {
-        self.constraints.len() == 1 && self.constraints[0].comparator().is_equal()
+        self.constraints.len() == 1 && matches!(self.constraints[0].comparator(), Comparator::Equal)
     }
 }
 

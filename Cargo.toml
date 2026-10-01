@@ -1,6 +1,6 @@
 [package]
 name = "vers-like-specifier"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "vls (vers-like specifier) parser"
 license = "Apache-2.0"
@@ -13,6 +13,9 @@ publish = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+
+[lints.rust]
+unsafe_code = "forbid"
 
 [dependencies]
 strum = { version = "0.28.0", features = ["derive"] }
@@ -31,7 +34,7 @@ wasm = ["dep:wasm-bindgen", "dep:serde-wasm-bindgen", "dep:js-sys", "dep:tsify",
 
 [dev-dependencies]
 criterion = { version = "0.8", features = ["html_reports"] }
-rstest = "0.26.1"
+rstest = "0.27.0"
 wasm-bindgen-test = "0.3"
 
 [[bench]]
