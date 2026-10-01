@@ -33,9 +33,11 @@ default = []
 wasm = ["dep:wasm-bindgen", "dep:serde-wasm-bindgen", "dep:js-sys", "dep:tsify", "dep:console_error_panic_hook"]
 
 [dev-dependencies]
-criterion = { version = "0.8", features = ["html_reports"] }
 rstest = "0.27.0"
 wasm-bindgen-test = "0.3"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+criterion = { version = "0.8", features = ["html_reports"] }
 
 [[bench]]
 name = "parsing_bench"
