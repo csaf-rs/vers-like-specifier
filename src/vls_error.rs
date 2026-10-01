@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use crate::constraint::ConstraintError;
+pub use crate::constraint::ConstraintError;
 use thiserror::Error;
 #[cfg(feature = "wasm")]
 use {js_sys::Error as JsError, wasm_bindgen::JsValue};
@@ -18,7 +18,7 @@ pub enum VlsError {
     ForbiddenAnyUsed,
 
     /// The input contains characters not allowed by the VLS grammar.
-    /// See [`Vls`] for more details on the grammar.
+    /// See [`Vls`](crate::Vls) for more details on the grammar.
     #[error("Invalid character(s) in VLS: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
     InvalidCharacters(Vec<char>),
 
