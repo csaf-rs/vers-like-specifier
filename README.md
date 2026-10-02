@@ -1,6 +1,7 @@
 # vers-like-specifier
 
 [![crates.io](https://img.shields.io/crates/v/vers-like-specifier.svg)](https://crates.io/crates/vers-like-specifier)
+[![npm](https://img.shields.io/npm/v/%40csaf-rs%2Fvers-like-specifier.svg)](https://www.npmjs.com/package/@csaf-rs/vers-like-specifier)
 
 A Rust library for parsing and validating **Vers-like Specifiers** (vls) as defined in [CSAF 2.0](https://docs.oasis-open.org/csaf/csaf/v2.0/os/csaf-v2.0-os.html#31232-branches-type---name-under-product-version-range) and [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range).
 
