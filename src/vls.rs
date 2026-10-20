@@ -164,6 +164,10 @@ impl FromStr for Vls {
 
     /// Try to parse the provided string as [Vls].
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // Strip surrounding whitespace; literal whitespace remaining within a constraint or
+        // version (after trimming) is rejected further down as an invalid character.
+        let s = s.trim();
+
         // If the string is empty, return an error
         if s.is_empty() {
             return Err(VlsError::EmptyInput);

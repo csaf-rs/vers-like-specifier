@@ -22,6 +22,7 @@ impl FromStr for VersionString {
     type Err = ConstraintError;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
+        let input = input.trim();
         if input.is_empty() {
             return Err(ConstraintError::EmptyConstraintVersion);
         }
