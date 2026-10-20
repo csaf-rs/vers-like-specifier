@@ -80,6 +80,56 @@ impl Vls {
     pub fn is_single_version(&self) -> bool {
         self.constraints.len() == 1 && matches!(self.constraints[0].comparator(), Comparator::Equal)
     }
+
+    /// Return `true` if this specifier contains exactly the given `version`.
+    ///
+    /// Because the versioning scheme of a [`Vls`] is unspecified, order-based containment
+    /// checks (e.g. whether some version falls between two others) are not possible. Only
+    /// constraints using an exact-match comparator can resolve this check:
+    ///
+    /// * [`Comparator::Equal`], [`Comparator::GreaterThanOrEqual`], [`Comparator::LessThanOrEqual`]:
+    ///   if their version is exactly equal to `version`, it is contained (`x = x`, `x >= x`, `x <= x`
+    ///   all hold).
+    /// * [`Comparator::NotEqual`]: if its version is exactly equal to `version`, it is explicitly
+    ///   excluded, so it is not contained.
+    /// * [`Comparator::LessThan`], [`Comparator::GreaterThan`]: an exact match can never be
+    ///   contained, since `x < x` and `x > x` are always false.
+    ///
+    /// If `version` does not exactly match any constraint's version, containment cannot be
+    /// determined (the versioning scheme is unknown), so this returns `false`.
+    ///
+    /// Note that a [`Vls`] cannot contain two constraints with the same version string (regardless
+    /// of comparator), so at most one constraint can ever match `version` exactly.
+    ///
+    /// Surrounding whitespace in `version` is stripped before comparing, matching the behavior
+    /// of the constraints a `Vls` is parsed from (which never contain whitespace).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vers_like_specifier::Vls;
+    ///
+    /// let vls: Vls = ">=1.0.0|!=1.5.0|<=2.0.0".parse().unwrap();
+    /// assert!(vls.contains("1.0.0"));
+    /// assert!(vls.contains("2.0.0"));
+    /// assert!(!vls.contains("1.5.0"));
+    /// assert!(!vls.contains("1.6.0"));
+    /// assert!(vls.contains("  1.0.0  "));
+    /// ```
+    pub fn contains(&self, version: &str) -> bool {
+        let version = version.trim();
+        self.constraints
+            .iter()
+            .find(|c| c.version().as_str() == version)
+            .is_some_and(|c| {
+                matches!(
+                    c.comparator(),
+                    Comparator::Equal
+                        | Comparator::GreaterThanOrEqual
+                        | Comparator::LessThanOrEqual
+                )
+            })
+    }
 }
 
 #[cfg(feature = "wasm")]
@@ -99,6 +149,13 @@ impl Vls {
     #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = isSingleVersion))]
     pub fn wasm_is_single_version(&self) -> bool {
         self.is_single_version()
+    }
+
+    /// Return `true` if this specifier contains exactly the given `version`, exposed as the
+    /// instance method `vls.contains(version)` in JS.
+    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = contains))]
+    pub fn wasm_contains(&self, version: &str) -> bool {
+        self.contains(version)
     }
 }
 

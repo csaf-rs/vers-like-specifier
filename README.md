@@ -39,6 +39,11 @@ assert_eq!(constraints[0].comparator(), &Comparator::GreaterThanOrEqual);
 assert_eq!(constraints[0].version().to_string(), "1.0.0");
 assert_eq!(constraints[1].comparator(), &Comparator::LessThan);
 assert_eq!(constraints[1].version().to_string(), "2.0.0");
+
+// Because the versioning scheme is unknown, only exact matches on constraints using
+// =, >=, <=, or != can be resolved.
+assert!(vls.contains("1.0.0"));
+assert!(!vls.contains("1.5.0"));
 ```
 
 ### JavaScript / WASM Usage
@@ -56,6 +61,9 @@ console.log(single.isSingleVersion()); // true
 
 const constraint = new Constraint(Comparator.GreaterThanOrEqual, "1.0.0");
 console.log(constraint.version); // "1.0.0"
+
+console.log(vls.contains("1.0.0")); // true (matches the >= constraint exactly)
+console.log(vls.contains("1.5.0")); // false (can't be resolved; versioning scheme is unknown)
 
 try {
   Vls.parse("*");
