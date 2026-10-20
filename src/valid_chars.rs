@@ -36,9 +36,19 @@ pub enum VlsSpecialCharSet {
 
 impl VlsSpecialCharSet {
     fn get_lookup(&self) -> &'static AsciiLookup {
-        // Generate compile-time lookups
-        const VERSION_STRING: AsciiLookup = build_lookup("-._+~");
-        const CONSTRAINTS_STRING: AsciiLookup = build_lookup("-._+~=!<>|");
+        // Generate compile-time lookups.
+        //
+        // The version-string special characters follow the ECMA VERS specification
+        // (https://ecma-tc54.github.io/ECMA-xxx-VERS/), section 5.3.3.2: a `version` may
+        // contain any printable ASCII punctuation character, *except* for the characters that
+        // VERS requires to be percent-encoded when they appear literally in a version (`>`,
+        // `<`, `=`, `!`, `*`, `|`, `%`). This crate does not implement percent-encoding or
+        // decoding, so those reserved characters are simply rejected as invalid rather than
+        // decoded.
+        const VERSION_STRING: AsciiLookup = build_lookup("\"#$&'()+,-./:;?@[\\]^_`{}~");
+        // The constraints-level special characters are the version-string special characters,
+        // plus the comparator characters (`=`, `!`, `<`, `>`) and the `|` segment delimiter.
+        const CONSTRAINTS_STRING: AsciiLookup = build_lookup("\"#$&'()+,-./:;?@[\\]^_`{}~=!<>|");
         match self {
             VlsSpecialCharSet::VersionString => &VERSION_STRING,
             VlsSpecialCharSet::ConstraintsString => &CONSTRAINTS_STRING,

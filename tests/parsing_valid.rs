@@ -8,6 +8,20 @@ use vers_like_specifier::{Comparator, Vls};
 #[case(">1.0.0", Comparator::GreaterThan, "1.0.0", false)]
 #[case("1.2.3", Comparator::Equal, "1.2.3", true)]
 #[case("!=5.0", Comparator::NotEqual, "5.0", false)]
+#[case(">=1.0,0", Comparator::GreaterThanOrEqual, "1.0,0", false)]
+#[case(">=1.0+build.1", Comparator::GreaterThanOrEqual, "1.0+build.1", false)]
+#[case("!=1.0:beta", Comparator::NotEqual, "1.0:beta", false)]
+#[case("<=1.0@2", Comparator::LessThanOrEqual, "1.0@2", false)]
+#[case("1.0#rc1", Comparator::Equal, "1.0#rc1", true)]
+#[case(">=1.0&2.0", Comparator::GreaterThanOrEqual, "1.0&2.0", false)]
+#[case("1.0'beta", Comparator::Equal, "1.0'beta", true)]
+#[case("1.0;2", Comparator::Equal, "1.0;2", true)]
+#[case("1.0?beta", Comparator::Equal, "1.0?beta", true)]
+#[case("1.0[2]", Comparator::Equal, "1.0[2]", true)]
+#[case("1.0^2", Comparator::Equal, "1.0^2", true)]
+#[case("1.0`beta", Comparator::Equal, "1.0`beta", true)]
+#[case("1.0{2}", Comparator::Equal, "1.0{2}", true)]
+#[case("1.0\"beta\"", Comparator::Equal, "1.0\"beta\"", true)]
 fn parse_single_versioned_constraint(
     #[case] input: &str,
     #[case] expected_cmp: Comparator,

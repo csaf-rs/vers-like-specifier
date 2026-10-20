@@ -25,36 +25,64 @@ use std::str::FromStr;
 ///
 /// # Syntax
 ///
-/// Derived from the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse) and
+/// Derived from the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse),
 /// its comments in
 /// [CSAF 2.0](https://docs.oasis-open.org/csaf/csaf/v2.0/os/csaf-v2.0-os.html#31232-branches-type---name-under-product-version-range)
 /// and
-/// [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range).
+/// [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range),
+/// and the [draft ECMA VERS specification](https://ecma-tc54.github.io/ECMA-xxx-VERS/), which as
+/// of this writing has not yet been ratified.
 ///
-/// There currently is no "official" grammar for vers-like specifier / the `<constraints>` part of
-/// vers. This is a best-effort attempt used for this library.
+/// Because a VLS string is only the `<constraints>` part of a full `vers:<type>/<constraints>`
+/// URI, and CSAF leaves the `<constraints>` grammar otherwise unspecified, this is a best-effort
+/// grammar used by this library. It deliberately diverges from the (draft) ECMA VERS
+/// specification in a few ways:
 ///
-/// **Note:** This grammar may need to be updated once vers has been ratified through ECMA / following changes
-/// to / clarifications of CSAF 2.0 or CSAF 2.1.
+/// - A VLS string has no `vers:` scheme and no `<type>` component; it is only the
+///   `<constraints>` part.
+/// - The `*` ("any version") comparator from VERS is not supported; see
+///   [`VlsError::ForbiddenAnyUsed`].
+/// - This library does not implement percent-encoding or decoding of version strings.
+///   Characters that VERS requires to be percent-encoded when used literally in a version
+///   (`>`, `<`, `=`, `!`, `*`, `|`, `%`) are instead simply rejected if they appear literally
+///   within a version string.
+/// - VERS does not permit literal ASCII whitespace anywhere (it must be percent-encoded as
+///   `%20`); this library instead treats whitespace *outside* of a version string as
+///   insignificant and trims it before validation, while still rejecting it *within* a version
+///   string. See the whitespace note below for details.
+///
+/// **Note:** This grammar may need to be updated once VERS has been ratified through ECMA, or
+/// following changes to / clarifications of CSAF 2.0 or CSAF 2.1.
 ///
 /// ```text
-/// vls            = constraint *( "|" constraint )
-/// constraint     = comparator version-string / version-string
-/// comparator     = "!=" / "<=" / ">=" / "<" / ">"
-/// version-string = 1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )
+/// vls             = constraint *( "|" constraint )
+/// constraint      = comparator version-string / version-string
+/// comparator      = "!=" / "<=" / ">=" / "<" / ">"
+/// version-string  = 1*( ALPHA / DIGIT / version-punct )
+/// ```
+///
+/// `version-punct` follows the printable-ASCII-punctuation rule for a VERS `version`
+/// (ECMA VERS section 5.3.3.2), minus the characters that VERS reserves and requires to be
+/// percent-encoded when used literally in a version: `>`, `<`, `=`, `!`, `*`, `|`, `%`. Since
+/// this library has no percent-decoding step, those reserved characters are simply invalid
+/// within a version string. Concretely, `version-punct` is one of:
+///
+/// ```text
+/// " # $ & ' ( ) + , - . / : ; ? @ [ \ ] ^ _ ` { } ~
 /// ```
 ///
 /// For validation, this leads to two sets of characters allowed in the context of the grammar.
 ///
-/// For `constraints`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" / "=" / "!" / "<" / ">" / "|"`
+/// For `constraints`: `ALPHA / DIGIT / version-punct / "=" / "!" / "<" / ">" / "|"`
 ///
-/// For `version-string`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~"`
+/// For `version-string`: `ALPHA / DIGIT / version-punct`
 ///
 /// Whitespace is insignificant and trimmed before validation anywhere outside of a version
 /// string itself — this includes leading/trailing whitespace, whitespace surrounding the `|`
 /// constraint delimiter, and whitespace between a comparator and its version (e.g.
 /// `" >= 1.0 | <= 2.0 "` is equivalent to `">=1.0|<=2.0"`). Whitespace *within* a version
-/// string, such as `"1.0 beta"`, remains invalid.
+/// string, such as `"1.0 beta"`, remains invalid. Note that this diverges from ECMA VERS,
+/// which requires whitespace to always be percent-encoded rather than treated as insignificant.
 ///
 /// # Examples
 ///
