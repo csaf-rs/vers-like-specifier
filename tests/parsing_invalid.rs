@@ -2,9 +2,12 @@ use rstest::rstest;
 use std::collections::BTreeSet;
 use vers_like_specifier::{ConstraintError, Vls, VlsError};
 
-#[test]
-fn parse_empty_string_is_error() {
-    let err = "".parse::<Vls>().unwrap_err();
+#[rstest]
+#[case::empty("")]
+#[case::only_whitespace(" ")]
+#[case::only_multi_whitespace("   ")]
+fn parse_empty_string_is_error(#[case] input: &str) {
+    let err = input.parse::<Vls>().unwrap_err();
     assert!(matches!(err, VlsError::EmptyInput));
 }
 
@@ -32,11 +35,6 @@ fn parse_contains_vers_type_is_error(#[case] input: &str) {
 
 #[rstest]
 #[case::space_in_version(">=1.0 beta", vec![' '])]
-#[case::leading_whitespace(" >=1.0", vec![' '])]
-#[case::trailing_whitespace(">=1.0 ", vec![' '])]
-#[case::whitespace_around_pipe(">=1.0 | <=2.0", vec![' '])]
-#[case::only_whitespace(" ", vec![' '])]
-#[case::only_multi_whitespace("   ", vec![' '])]
 #[case::comma(">=1,0", vec![','])]
 #[case::at_sign(">=1.0@beta", vec!['@'])]
 #[case::hash("1.0#rc1", vec!['#'])]

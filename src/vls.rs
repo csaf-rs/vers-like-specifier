@@ -50,6 +50,11 @@ use std::str::FromStr;
 ///
 /// For `version-string`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~"`
 ///
+/// Leading / trailing whitespace, and whitespace directly surrounding the `|` constraint
+/// delimiter, is insignificant and trimmed before validation (e.g. `" >=1.0 | <=2.0 "` is
+/// equivalent to `">=1.0|<=2.0"`). Whitespace elsewhere, such as within a version string,
+/// remains invalid.
+///
 /// # Examples
 ///
 /// ```
@@ -107,13 +112,17 @@ impl FromStr for Vls {
 
     /// Try to parse the provided string as [Vls].
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // Whitespace used purely to separate the input (leading/trailing, or around the `|`
+        // constraint delimiter) is insignificant and trimmed away before validation.
+        let trimmed = s.trim();
+
         // If the string is empty, return an error
-        if s.is_empty() {
+        if trimmed.is_empty() {
             return Err(VlsError::EmptyInput);
         }
 
         // If the string is a single wildcard, return an error
-        if s == "*" {
+        if trimmed == "*" {
             return Err(VlsError::ForbiddenAnyUsed);
         }
 
@@ -124,23 +133,29 @@ impl FromStr for Vls {
         // more informative error handling there, as both indicate this might be a vers string.
 
         // If the string contains the vers URI prefix, return an error
-        if s.starts_with("vers:") {
+        if trimmed.starts_with("vers:") {
             return Err(VlsError::ContainsVersPrefix);
         }
 
         // `/` is not a valid character in the vls grammar, but is used as the type delimiter in vers.
         // Its presence indicates the string contains a "<type>/" component
-        if s.contains('/') {
+        if trimmed.contains('/') {
             return Err(VlsError::ContainsVersType);
         }
 
-        // Reject any character that is not part of the 'constraints' grammar.
-        if let Some(invalid) = collect_invalid_characters(s, VlsSpecialCharSet::ConstraintsString) {
+        // Split the constraints, trimming insignificant whitespace around each one.
+        let parts: Vec<&str> = trimmed.split('|').map(str::trim).collect();
+
+        // Reject any character that is not part of the 'constraints' grammar. This is checked
+        // against the already-trimmed parts, so that insignificant whitespace around constraints
+        // is not mistaken for an invalid character, while whitespace *within* a constraint
+        // still is.
+        let joined = parts.join("|");
+        if let Some(invalid) =
+            collect_invalid_characters(&joined, VlsSpecialCharSet::ConstraintsString)
+        {
             return Err(VlsError::InvalidCharacters(invalid));
         }
-
-        // Split the constraints
-        let parts: Vec<&str> = s.split('|').collect();
 
         // Parse the constraints, generating parsed Constraint or ConstraintErrors for each
         let mut constraints: Vec<Constraint> = Vec::with_capacity(parts.len());

@@ -25,6 +25,19 @@ fn parse_single_versioned_constraint(
     assert_eq!(v.is_single_version(), expected_is_single_version);
 }
 
+#[rstest]
+#[case::leading_whitespace(" >=1.0", ">=1.0")]
+#[case::trailing_whitespace(">=1.0 ", ">=1.0")]
+#[case::leading_and_trailing_whitespace("  >=1.0  ", ">=1.0")]
+#[case::whitespace_around_pipe(">=1.0 | <=2.0", ">=1.0|<=2.0")]
+#[case::multiple_whitespace_around_pipes(">=1.0  |  <=2.0  |  !=3.0", ">=1.0|<=2.0|!=3.0")]
+fn parse_insignificant_whitespace_is_trimmed(#[case] input: &str, #[case] expected: &str) {
+    let v: Vls = input
+        .parse()
+        .expect("Expected valid vls constraints to parse");
+    assert_eq!(v.to_string(), expected);
+}
+
 #[test]
 fn parse_multiple_constraints() {
     let input = ">10.9a|!=10.9c|!=10.9f|<=10.9k";
