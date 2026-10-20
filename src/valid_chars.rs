@@ -49,18 +49,28 @@ impl VlsSpecialCharSet {
 /// Collects characters from `input` that are **not** ASCII-alphanumeric and **not**
 /// contained in `special_charset`, returning them sorted and deduplicated.
 ///
+/// For [`VlsSpecialCharSet::ConstraintsString`], whitespace is always considered valid, as
+/// whitespace is permitted everywhere in a VLS string except within a version string itself.
+/// [`VlsSpecialCharSet::VersionString`] never treats whitespace as valid, so whitespace
+/// remaining within a version string after the surrounding comparator/delimiters have been
+/// stripped is correctly reported as invalid.
+///
 /// Returns `None` if every character is valid.
 pub fn collect_invalid_characters(
     input: &str,
     special_charset: VlsSpecialCharSet,
 ) -> Option<Vec<char>> {
     let lookup = special_charset.get_lookup();
+    let allow_whitespace = matches!(special_charset, VlsSpecialCharSet::ConstraintsString);
     let mut invalid: Vec<char> = input
         .chars()
         .filter(|ch| {
             let idx = *ch as usize;
-            // check if the char is not ASCII alphanumeric or contained in the allowed special chars
-            !(ch.is_ascii_alphanumeric() || (idx < ASCII_TABLE_SIZE && lookup[idx]))
+            // check if the char is not ASCII alphanumeric, not contained in the allowed
+            // special chars, and (in the constraints-level context) not whitespace
+            !(ch.is_ascii_alphanumeric()
+                || (idx < ASCII_TABLE_SIZE && lookup[idx])
+                || (allow_whitespace && ch.is_whitespace()))
         })
         .collect();
 

@@ -50,10 +50,11 @@ use std::str::FromStr;
 ///
 /// For `version-string`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~"`
 ///
-/// Leading / trailing whitespace, and whitespace directly surrounding the `|` constraint
-/// delimiter, is insignificant and trimmed before validation (e.g. `" >=1.0 | <=2.0 "` is
-/// equivalent to `">=1.0|<=2.0"`). Whitespace elsewhere, such as within a version string,
-/// remains invalid.
+/// Whitespace is insignificant and trimmed before validation anywhere outside of a version
+/// string itself — this includes leading/trailing whitespace, whitespace surrounding the `|`
+/// constraint delimiter, and whitespace between a comparator and its version (e.g.
+/// `" >= 1.0 | <= 2.0 "` is equivalent to `">=1.0|<=2.0"`). Whitespace *within* a version
+/// string, such as `"1.0 beta"`, remains invalid.
 ///
 /// # Examples
 ///
@@ -146,10 +147,10 @@ impl FromStr for Vls {
         // Split the constraints, trimming insignificant whitespace around each one.
         let parts: Vec<&str> = trimmed.split('|').map(str::trim).collect();
 
-        // Reject any character that is not part of the 'constraints' grammar. This is checked
-        // against the already-trimmed parts, so that insignificant whitespace around constraints
-        // is not mistaken for an invalid character, while whitespace *within* a constraint
-        // still is.
+        // Reject any character that is not part of the 'constraints' grammar. Whitespace is
+        // always permitted at this level (it is insignificant anywhere outside of a version
+        // string), so any invalid whitespace *within* a version string is instead caught later,
+        // when each constraint's version string is parsed and validated on its own.
         let joined = parts.join("|");
         if let Some(invalid) =
             collect_invalid_characters(&joined, VlsSpecialCharSet::ConstraintsString)

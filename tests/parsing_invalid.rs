@@ -34,14 +34,13 @@ fn parse_contains_vers_type_is_error(#[case] input: &str) {
 }
 
 #[rstest]
-#[case::space_in_version(">=1.0 beta", vec![' '])]
 #[case::comma(">=1,0", vec![','])]
 #[case::at_sign(">=1.0@beta", vec!['@'])]
 #[case::hash("1.0#rc1", vec!['#'])]
 #[case::dollar_sign(">=1.0|<=2.0$beta", vec!['$'])]
-#[case::space_and_comma(">=1,0 beta", vec![' ', ','])]
+#[case::space_and_comma(">=1,0 beta", vec![','])]
 #[case::hash_and_at("1.0#rc1@beta", vec!['#', '@'])]
-#[case::multiple_different("$1.0 @2.0#3", vec![' ', '#', '$', '@'])]
+#[case::multiple_different("$1.0 @2.0#3", vec!['#', '$', '@'])]
 #[case::star_after_version_string(">=1.0*", vec!['*'])]
 #[case::star_before_version_string(">=*1.0", vec!['*'])]
 #[case::star_before_comparator("*>=1.0*", vec!['*'])]
@@ -108,6 +107,8 @@ fn parse_empty_version_is_error(#[case] input: &str, #[case] expected_count: usi
 #[case::less_than_in_version(">=1.0<2", vec![vec!['<']])]
 #[case::greater_than_in_version(">=1.0>2", vec![vec!['>']])]
 #[case::multiple_invalid_in_version(">=1.0=!beta", vec![vec!['!', '=']])]
+#[case::space_in_version(">=1.0 beta", vec![vec![' ']])]
+#[case::multiple_spaces_in_version(">=1.0  beta  rc1", vec![vec![' ']])]
 fn parse_invalid_version_characters_is_error(
     #[case] input: &str,
     #[case] expected_chars: Vec<Vec<char>>,
