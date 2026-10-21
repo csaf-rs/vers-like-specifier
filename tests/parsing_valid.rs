@@ -66,7 +66,13 @@ fn parse_insignificant_whitespace_is_trimmed(#[case] input: &str, #[case] expect
 #[case("1.0%25beta", "1.0%25beta")]
 #[case("1.0%3ebeta", "1.0%3ebeta")]
 #[case("1.0%3e%3c%3d%21%2a%7c%25beta", "1.0%3e%3c%3d%21%2a%7c%25beta")]
-fn parse_percent_encoded_reserved_characters_in_version(
+// Percent-encoding is validated generally, not just for the seven VERS-reserved characters:
+// any well-formed `%` + two hex digits triplet is valid, regardless of what it decodes to.
+#[case("1.0%41beta", "1.0%41beta")]
+#[case("1.0%ffbeta", "1.0%ffbeta")]
+#[case("1.0%00beta", "1.0%00beta")]
+#[case("1.0%20beta", "1.0%20beta")]
+fn parse_percent_encoded_characters_in_version(
     #[case] input: &str,
     #[case] expected_version: &str,
 ) {

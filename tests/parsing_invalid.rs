@@ -106,12 +106,13 @@ fn parse_empty_version_is_error(#[case] input: &str, #[case] expected_count: usi
 #[case::space_in_version(">=1.0 beta", vec![vec![' ']])]
 #[case::multiple_spaces_in_version(">=1.0  beta  rc1", vec![vec![' ']])]
 #[case::space_with_otherwise_valid_punctuation(">=1,0 beta", vec![vec![' ']])]
-#[case::percent_encoding_a_non_reserved_char(">=1.0%41", vec![vec!['%']])]
-#[case::bare_percent_sign(">=1.0%beta", vec![vec!['%']])]
+#[case::bare_percent_sign(">=1.0%gobeta", vec![vec!['%']])]
 #[case::percent_with_invalid_hex(">=1.0%zzbeta", vec![vec!['%']])]
+#[case::percent_with_one_invalid_hex_digit(">=1.0%4zbeta", vec![vec!['%']])]
 #[case::percent_with_incomplete_hex(">=1.0%3", vec![vec!['%']])]
 #[case::percent_at_end_of_version(">=1.0%", vec![vec!['%']])]
-#[case::multiple_bare_percents(">=1.0%beta%2", vec![vec!['%']])]
+#[case::multiple_bare_percents(">=1.0%go%zz", vec![vec!['%']])]
+#[case::literal_reserved_char_still_invalid_alongside_valid_escape(">=1.0%41!beta", vec![vec!['!']])]
 fn parse_invalid_version_characters_is_error(
     #[case] input: &str,
     #[case] expected_chars: Vec<Vec<char>>,

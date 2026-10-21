@@ -42,14 +42,11 @@ use std::str::FromStr;
 ///   `<constraints>` part.
 /// - The `*` ("any version") comparator from VERS is not supported; see
 ///   [`VlsError::ForbiddenAnyUsed`].
-/// - This library does not implement general percent-decoding of version strings. Only the
-///   percent-encoded forms of the seven VERS-reserved characters (`>`, `<`, `=`, `!`, `*`,
-///   `|`, `%`, i.e. `%3E`, `%3C`, `%3D`, `%21`, `%2A`, `%7C`, `%25`) are recognized as valid
-///   when they occur within a version string; they are validated but *not* decoded, so a
-///   parsed [`VersionString`] still contains the percent-encoded form verbatim. Any other
-///   percent-encoded sequence (e.g. one encoding a letter, digit, or other punctuation
-///   character) is rejected, as is a literal, un-encoded occurrence of one of the seven
-///   reserved characters.
+/// - This library validates that a percent-encoded sequence (`%` followed by two ASCII hex
+///   digits, per RFC 3986) within a version string is syntactically well-formed, but does not
+///   decode it: a parsed [`VersionString`] still contains the percent-encoded form verbatim.
+///   A literal, un-encoded occurrence of one of the seven VERS-reserved characters (`>`, `<`,
+///   `=`, `!`, `*`, `|`, `%`) is rejected, as is a `%` that is not followed by two hex digits.
 /// - VERS does not permit literal ASCII whitespace anywhere (it must be percent-encoded as
 ///   `%20`); this library instead treats whitespace *outside* of a version string as
 ///   insignificant and trims it before validation, while still rejecting it *within* a version
@@ -62,8 +59,8 @@ use std::str::FromStr;
 /// vls             = constraint *( "|" constraint )
 /// constraint      = comparator version-string / version-string
 /// comparator      = "!=" / "<=" / ">=" / "<" / ">"
-/// version-string  = 1*( ALPHA / DIGIT / version-punct / reserved-escape )
-/// reserved-escape = "%3E" / "%3C" / "%3D" / "%21" / "%2A" / "%7C" / "%25"
+/// version-string  = 1*( ALPHA / DIGIT / version-punct / pct-encoded )
+/// pct-encoded     = "%" HEXDIG HEXDIG
 /// ```
 ///
 /// `version-punct` follows the printable-ASCII-punctuation rule for a VERS `version`
@@ -75,18 +72,21 @@ use std::str::FromStr;
 /// " # $ & ' ( ) + , - . / : ; ? @ [ \ ] ^ _ ` { } ~
 /// ```
 ///
-/// A literal, un-encoded occurrence of a reserved character is invalid within a version
-/// string; it must instead appear as its `reserved-escape` percent-encoded form (case
-/// insensitive), matching the corresponding character's ASCII hex code, e.g. `%3E` for `>`.
-/// This library validates `reserved-escape` sequences but does not decode them: a parsed
-/// [`VersionString`] preserves the percent-encoded form verbatim. This library does not
-/// implement general percent-decoding, so any other percent-encoded sequence is invalid.
+/// A literal, un-encoded occurrence of one of the seven reserved characters is invalid within
+/// a version string; it must instead appear in its `pct-encoded` percent-encoded form (per
+/// [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-2.1)), e.g. `%3E` for `>`.
+/// This library validates that a `pct-encoded` sequence is syntactically well-formed (`%`
+/// followed by exactly two ASCII hex digits, case insensitive) but does not decode it: a
+/// parsed [`VersionString`] preserves the percent-encoded form verbatim. Validity of a
+/// `pct-encoded` sequence does not depend on which character it decodes to — `%41` (decoding
+/// to the letter `A`) is just as well-formed as `%3E` — since this library does not implement
+/// percent-decoding. A bare `%` not followed by two hex digits is invalid.
 ///
 /// For validation, this leads to two sets of characters allowed in the context of the grammar.
 ///
-/// For `constraints`: `ALPHA / DIGIT / version-punct / reserved-escape / "=" / "!" / "<" / ">" / "|" / "%"`
+/// For `constraints`: `ALPHA / DIGIT / version-punct / pct-encoded / "=" / "!" / "<" / ">" / "|" / "%"`
 ///
-/// For `version-string`: `ALPHA / DIGIT / version-punct / reserved-escape`
+/// For `version-string`: `ALPHA / DIGIT / version-punct / pct-encoded`
 ///
 /// Whitespace is insignificant and trimmed before validation anywhere outside of a version
 /// string itself — this includes leading/trailing whitespace, whitespace surrounding the `|`

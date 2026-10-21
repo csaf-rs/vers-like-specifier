@@ -34,35 +34,22 @@ pub enum VlsSpecialCharSet {
     ConstraintsString,
 }
 
-/// The ASCII characters that ECMA VERS (<https://ecma-tc54.github.io/ECMA-xxx-VERS/>, section
-/// 5.3.3.2) reserves for `comparator`s and the `|` segment delimiter, each paired with its
-/// uppercase percent-encoded hex code. If a `version` needs to contain one of these characters
-/// literally, VERS requires it to be percent-encoded using the corresponding code.
-const RESERVED_VERS_CHAR_CODES: &[(char, &str)] = &[
-    ('>', "3E"),
-    ('<', "3C"),
-    ('=', "3D"),
-    ('!', "21"),
-    ('*', "2A"),
-    ('|', "7C"),
-    ('%', "25"),
-];
-
 impl VlsSpecialCharSet {
     fn get_lookup(&self) -> &'static AsciiLookup {
         // Generate compile-time lookups.
         //
         // The version-string special characters follow the ECMA VERS specification
         // (https://ecma-tc54.github.io/ECMA-xxx-VERS/), section 5.3.3.2: a `version` may
-        // contain any printable ASCII punctuation character, *except* for the characters in
-        // RESERVED_VERS_CHAR_CODES, which VERS requires to be percent-encoded when they appear
-        // literally in a version. Percent-encoded occurrences of those reserved characters are
-        // handled separately by `collect_invalid_version_characters`.
+        // contain any printable ASCII punctuation character, *except* for the seven characters
+        // VERS reserves for `comparator`s and the `|` segment delimiter (`>`, `<`, `=`, `!`,
+        // `*`, `|`, `%`), which VERS requires to be percent-encoded when they appear literally
+        // in a version. Percent-encoded triplets are handled separately by
+        // `collect_invalid_version_characters`.
         const VERSION_STRING: AsciiLookup = build_lookup("\"#$&'()+,-./:;?@[\\]^_`{}~");
         // The constraints-level special characters are the version-string special characters,
         // plus the comparator characters (`=`, `!`, `<`, `>`), the `|` segment delimiter, and
-        // `%` (allowed unconditionally at this coarse level; whether a given `%` forms a valid
-        // percent-encoded escape is checked later, at the version-string level).
+        // `%` (allowed unconditionally at this coarse level; whether a given `%` starts a
+        // well-formed percent-encoded triplet is checked later, at the version-string level).
         const CONSTRAINTS_STRING: AsciiLookup = build_lookup("\"#$&'()+,-./:;?@[\\]^_`{}~=!<>|%");
         match self {
             VlsSpecialCharSet::VersionString => &VERSION_STRING,
@@ -78,7 +65,7 @@ impl VlsSpecialCharSet {
 /// string except within a version string itself.
 ///
 /// For VersionString, validation is delegated to `collect_invalid_version_characters`, which
-/// is aware of percent-encoded reserved characters.
+/// is aware of well-formed percent-encoded triplets.
 ///
 /// Returns `None` if every character is valid.
 pub fn collect_invalid_characters(
@@ -109,21 +96,22 @@ pub fn collect_invalid_characters(
     Some(invalid)
 }
 
-/// Collects characters from a `version-string` candidate that are invalid, treating a
-/// recognized percent-encoded reserved character (e.g. `%3E` for `>`, see
-/// [`RESERVED_VERS_CHAR_CODES`]) as valid, while still rejecting:
+/// Collects characters from a `version-string` candidate that are invalid, treating any
+/// well-formed percent-encoded triplet (`%` followed by two ASCII hex digits, per RFC 3986) as
+/// valid, while still rejecting:
 ///
-/// - a literal, un-encoded occurrence of a reserved character (`>` / `<` / `=` / `!` / `*` /
-///   `|` / `%`), which must instead be percent-encoded per ECMA VERS section 5.3.3.2;
-/// - a `%` that is not followed by a recognized reserved-character hex code (e.g. a malformed
-///   escape, or an escape for a character other than the seven reserved ones, since this crate
-///   does not implement general percent-decoding);
+/// - a literal, un-encoded occurrence of a reserved character (`>`, `<`, `=`, `!`, `*`, `|`,
+///   `%`), which must instead be percent-encoded per ECMA VERS section 5.3.3.2;
+/// - a `%` that is not followed by two ASCII hex digits (e.g. a malformed or truncated escape);
 /// - any character outside of `ALPHA` / `DIGIT` / the version-string special characters.
 ///
-/// The percent-encoded sequence itself is left untouched in the stored version string; this
-/// function only validates that it is well-formed, it does not decode it.
+/// Note that validity here does not depend on what a triplet decodes to: `%41` (which decodes
+/// to the letter `A`) is just as well-formed as `%3E` (which decodes to the reserved `>`). This
+/// crate does not implement percent-decoding, so the percent-encoded sequence itself is left
+/// untouched in the stored version string; this function only validates that it is
+/// syntactically well-formed.
 ///
-/// Returns `None` if every character (or recognized escape sequence) is valid.
+/// Returns `None` if every character (or well-formed percent-encoded triplet) is valid.
 fn collect_invalid_version_characters(input: &str) -> Option<Vec<char>> {
     let lookup = VlsSpecialCharSet::VersionString.get_lookup();
     let chars: Vec<char> = input.chars().collect();
@@ -134,13 +122,11 @@ fn collect_invalid_version_characters(input: &str) -> Option<Vec<char>> {
         let ch = chars[i];
 
         if ch == '%' {
-            let is_recognized_escape = chars.get(i + 1..i + 3).is_some_and(|hex| {
-                RESERVED_VERS_CHAR_CODES
-                    .iter()
-                    .any(|(_, code)| code.chars().eq(hex.iter().map(|c| c.to_ascii_uppercase())))
-            });
+            let is_well_formed_triplet = chars
+                .get(i + 1..i + 3)
+                .is_some_and(|hex| hex.iter().all(char::is_ascii_hexdigit));
 
-            if is_recognized_escape {
+            if is_well_formed_triplet {
                 i += 3;
             } else {
                 invalid.push('%');
