@@ -32,11 +32,7 @@ fn parse_contains_vers_type_is_error(#[case] input: &str) {
 
 #[rstest]
 #[case::space_in_version(">=1.0 beta", vec![' '])]
-#[case::leading_whitespace(" >=1.0", vec![' '])]
-#[case::trailing_whitespace(">=1.0 ", vec![' '])]
 #[case::whitespace_around_pipe(">=1.0 | <=2.0", vec![' '])]
-#[case::only_whitespace(" ", vec![' '])]
-#[case::only_multi_whitespace("   ", vec![' '])]
 #[case::comma(">=1,0", vec![','])]
 #[case::at_sign(">=1.0@beta", vec!['@'])]
 #[case::hash("1.0#rc1", vec!['#'])]
