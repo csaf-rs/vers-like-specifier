@@ -42,10 +42,14 @@ use std::str::FromStr;
 ///   `<constraints>` part.
 /// - The `*` ("any version") comparator from VERS is not supported; see
 ///   [`VlsError::ForbiddenAnyUsed`].
-/// - This library does not implement percent-encoding or decoding of version strings.
-///   Characters that VERS requires to be percent-encoded when used literally in a version
-///   (`>`, `<`, `=`, `!`, `*`, `|`, `%`) are instead simply rejected if they appear literally
-///   within a version string.
+/// - This library does not implement general percent-decoding of version strings. Only the
+///   percent-encoded forms of the seven VERS-reserved characters (`>`, `<`, `=`, `!`, `*`,
+///   `|`, `%`, i.e. `%3E`, `%3C`, `%3D`, `%21`, `%2A`, `%7C`, `%25`) are recognized as valid
+///   when they occur within a version string; they are validated but *not* decoded, so a
+///   parsed [`VersionString`] still contains the percent-encoded form verbatim. Any other
+///   percent-encoded sequence (e.g. one encoding a letter, digit, or other punctuation
+///   character) is rejected, as is a literal, un-encoded occurrence of one of the seven
+///   reserved characters.
 /// - VERS does not permit literal ASCII whitespace anywhere (it must be percent-encoded as
 ///   `%20`); this library instead treats whitespace *outside* of a version string as
 ///   insignificant and trims it before validation, while still rejecting it *within* a version
@@ -58,24 +62,31 @@ use std::str::FromStr;
 /// vls             = constraint *( "|" constraint )
 /// constraint      = comparator version-string / version-string
 /// comparator      = "!=" / "<=" / ">=" / "<" / ">"
-/// version-string  = 1*( ALPHA / DIGIT / version-punct )
+/// version-string  = 1*( ALPHA / DIGIT / version-punct / reserved-escape )
+/// reserved-escape = "%3E" / "%3C" / "%3D" / "%21" / "%2A" / "%7C" / "%25"
 /// ```
 ///
 /// `version-punct` follows the printable-ASCII-punctuation rule for a VERS `version`
 /// (ECMA VERS section 5.3.3.2), minus the characters that VERS reserves and requires to be
-/// percent-encoded when used literally in a version: `>`, `<`, `=`, `!`, `*`, `|`, `%`. Since
-/// this library has no percent-decoding step, those reserved characters are simply invalid
-/// within a version string. Concretely, `version-punct` is one of:
+/// percent-encoded when used literally in a version: `>`, `<`, `=`, `!`, `*`, `|`, `%`.
+/// Concretely, `version-punct` is one of:
 ///
 /// ```text
 /// " # $ & ' ( ) + , - . / : ; ? @ [ \ ] ^ _ ` { } ~
 /// ```
 ///
+/// A literal, un-encoded occurrence of a reserved character is invalid within a version
+/// string; it must instead appear as its `reserved-escape` percent-encoded form (case
+/// insensitive), matching the corresponding character's ASCII hex code, e.g. `%3E` for `>`.
+/// This library validates `reserved-escape` sequences but does not decode them: a parsed
+/// [`VersionString`] preserves the percent-encoded form verbatim. This library does not
+/// implement general percent-decoding, so any other percent-encoded sequence is invalid.
+///
 /// For validation, this leads to two sets of characters allowed in the context of the grammar.
 ///
-/// For `constraints`: `ALPHA / DIGIT / version-punct / "=" / "!" / "<" / ">" / "|"`
+/// For `constraints`: `ALPHA / DIGIT / version-punct / reserved-escape / "=" / "!" / "<" / ">" / "|" / "%"`
 ///
-/// For `version-string`: `ALPHA / DIGIT / version-punct`
+/// For `version-string`: `ALPHA / DIGIT / version-punct / reserved-escape`
 ///
 /// Whitespace is insignificant and trimmed before validation anywhere outside of a version
 /// string itself — this includes leading/trailing whitespace, whitespace surrounding the `|`

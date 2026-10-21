@@ -34,13 +34,12 @@ fn parse_contains_vers_type_is_error(#[case] input: &str) {
 }
 
 #[rstest]
-#[case::percent_sign(">=1.0%41", vec!['%'])]
 #[case::unicode_letter(">=1.0café", vec!['é'])]
-#[case::percent_and_unicode("%1.0|café", vec!['%', 'é'])]
+#[case::unicode_in_both_segments("café|naïve", vec!['é', 'ï'])]
 #[case::star_after_version_string(">=1.0*", vec!['*'])]
 #[case::star_before_version_string(">=*1.0", vec!['*'])]
 #[case::star_before_comparator("*>=1.0*", vec!['*'])]
-#[case::star_and_percent("*1.0%", vec!['%', '*'])]
+#[case::star_and_unicode("*1.0café", vec!['*', 'é'])]
 fn parse_invalid_constraints_chars_is_error(
     #[case] input: &str,
     #[case] expected_chars: Vec<char>,
@@ -107,6 +106,12 @@ fn parse_empty_version_is_error(#[case] input: &str, #[case] expected_count: usi
 #[case::space_in_version(">=1.0 beta", vec![vec![' ']])]
 #[case::multiple_spaces_in_version(">=1.0  beta  rc1", vec![vec![' ']])]
 #[case::space_with_otherwise_valid_punctuation(">=1,0 beta", vec![vec![' ']])]
+#[case::percent_encoding_a_non_reserved_char(">=1.0%41", vec![vec!['%']])]
+#[case::bare_percent_sign(">=1.0%beta", vec![vec!['%']])]
+#[case::percent_with_invalid_hex(">=1.0%zzbeta", vec![vec!['%']])]
+#[case::percent_with_incomplete_hex(">=1.0%3", vec![vec!['%']])]
+#[case::percent_at_end_of_version(">=1.0%", vec![vec!['%']])]
+#[case::multiple_bare_percents(">=1.0%beta%2", vec![vec!['%']])]
 fn parse_invalid_version_characters_is_error(
     #[case] input: &str,
     #[case] expected_chars: Vec<Vec<char>>,

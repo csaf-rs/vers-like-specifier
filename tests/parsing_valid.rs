@@ -56,6 +56,29 @@ fn parse_insignificant_whitespace_is_trimmed(#[case] input: &str, #[case] expect
     assert_eq!(v.to_string(), expected);
 }
 
+#[rstest]
+#[case("1.0%3Ebeta", "1.0%3Ebeta")]
+#[case("1.0%3Cbeta", "1.0%3Cbeta")]
+#[case("1.0%3Dbeta", "1.0%3Dbeta")]
+#[case("1.0%21beta", "1.0%21beta")]
+#[case("1.0%2Abeta", "1.0%2Abeta")]
+#[case("1.0%7Cbeta", "1.0%7Cbeta")]
+#[case("1.0%25beta", "1.0%25beta")]
+#[case("1.0%3ebeta", "1.0%3ebeta")]
+#[case("1.0%3e%3c%3d%21%2a%7c%25beta", "1.0%3e%3c%3d%21%2a%7c%25beta")]
+fn parse_percent_encoded_reserved_characters_in_version(
+    #[case] input: &str,
+    #[case] expected_version: &str,
+) {
+    let v: Vls = input
+        .parse()
+        .expect("Expected valid vls constraints to parse");
+    let cs = v.constraints();
+    assert_eq!(cs.len(), 1);
+    assert_eq!(cs[0].version().as_str(), expected_version);
+    assert_eq!(v.to_string(), input);
+}
+
 #[test]
 fn parse_multiple_constraints() {
     let input = ">10.9a|!=10.9c|!=10.9f|<=10.9k";
