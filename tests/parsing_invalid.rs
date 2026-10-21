@@ -15,22 +15,6 @@ fn parse_wildcard_is_error() {
 }
 
 #[rstest]
-#[case::vers("vers:gem/>=2.2.0")]
-#[case::vers_all("vers:all/*")]
-fn parse_vers_prefix_is_error(#[case] input: &str) {
-    let err = input.parse::<Vls>().unwrap_err();
-    assert!(matches!(err, VlsError::ContainsVersPrefix));
-}
-
-#[rstest]
-#[case::gem_type("gem/>=2.2.0")]
-#[case::only_type_delimiter("/>=2.2.0")]
-fn parse_contains_vers_type_is_error(#[case] input: &str) {
-    let err = input.parse::<Vls>().unwrap_err();
-    assert!(matches!(err, VlsError::ContainsVersType));
-}
-
-#[rstest]
 #[case::space_in_version(">=1.0 beta", vec![' '])]
 #[case::whitespace_around_pipe(">=1.0 | <=2.0", vec![' '])]
 #[case::comma(">=1,0", vec![','])]
@@ -43,6 +27,10 @@ fn parse_contains_vers_type_is_error(#[case] input: &str) {
 #[case::star_after_version_string(">=1.0*", vec!['*'])]
 #[case::star_before_version_string(">=*1.0", vec!['*'])]
 #[case::star_before_comparator("*>=1.0*", vec!['*'])]
+#[case::vers_uri_prefix("vers:gem/>=2.2.0", vec!['/', ':'])]
+#[case::vers_uri_prefix_wildcard("vers:all/*", vec!['*', '/', ':'])]
+#[case::vers_type("gem/>=2.2.0", vec!['/'])]
+#[case::only_type_delimiter("/>=2.2.0", vec!['/'])]
 fn parse_invalid_constraints_chars_is_error(
     #[case] input: &str,
     #[case] expected_chars: Vec<char>,

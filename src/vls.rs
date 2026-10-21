@@ -34,22 +34,6 @@ use std::str::FromStr;
 /// There currently is no "official" grammar for vers-like specifier / the `<constraints>` part of
 /// vers. This is a best-effort attempt used for this library.
 ///
-/// **Note:** This grammar may need to be updated once vers has been ratified through ECMA / following changes
-/// to / clarifications of CSAF 2.0 or CSAF 2.1.
-///
-/// ```text
-/// vls            = constraint *( "|" constraint )
-/// constraint     = comparator version-string / version-string
-/// comparator     = "!=" / "<=" / ">=" / "<" / ">"
-/// version-string = 1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )
-/// ```
-///
-/// For validation, this leads to two sets of characters allowed in the context of the grammar.
-///
-/// For `constraints`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" / "=" / "!" / "<" / ">" / "|"`
-///
-/// For `version-string`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~"`
-///
 /// # Examples
 ///
 /// ```
@@ -176,23 +160,6 @@ impl FromStr for Vls {
         // If the string is a single wildcard, return an error
         if s == "*" {
             return Err(VlsError::ForbiddenAnyUsed);
-        }
-
-        // The next two checks are not strictly necessary, as we would try to parse
-        // a string containing the vers URI prefix and / or a type component as part of
-        // the first constraint, which would fail the parsing.
-        // As this library is tightly coupled to csaf-rs, we still include them for easier /
-        // more informative error handling there, as both indicate this might be a vers string.
-
-        // If the string contains the vers URI prefix, return an error
-        if s.starts_with("vers:") {
-            return Err(VlsError::ContainsVersPrefix);
-        }
-
-        // `/` is not a valid character in the vls grammar, but is used as the type delimiter in vers.
-        // Its presence indicates the string contains a "<type>/" component
-        if s.contains('/') {
-            return Err(VlsError::ContainsVersType);
         }
 
         // Reject any character that is not part of the 'constraints' grammar.

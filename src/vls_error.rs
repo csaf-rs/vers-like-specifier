@@ -22,15 +22,6 @@ pub enum VlsError {
     #[error("Invalid character(s) in VLS: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
     InvalidCharacters(Vec<char>),
 
-    /// The input contains a `vers:` URI prefix, which is not allowed in a VLS string.
-    #[error("VLS must not contain a 'vers:' URI prefix")]
-    ContainsVersPrefix,
-
-    /// The input most likely contains a vers type
-    /// component (e.g. `gem` in `gem/>=2.2.0`), indicated by the presence of the type delimiter `/`.
-    #[error("VLS must not contain a vers type component")]
-    ContainsVersType,
-
     /// One or more constraints are invalid, for example due to constraints or version strings
     /// being empty, or due to invalid characters in version strings.
     #[error("Invalid constraint(s): {}", .0.iter().map(std::string::ToString::to_string).collect::<Vec<_>>().join(", "))]
