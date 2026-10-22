@@ -30,7 +30,7 @@ fn parse_vers_prefix_is_error(#[case] input: &str) {
 #[case::only_type_delimiter("/>=2.2.0")]
 fn parse_contains_vers_type_is_error(#[case] input: &str) {
     let err = input.parse::<Vls>().unwrap_err();
-    assert!(matches!(err, VlsError::ContainsVersType));
+    assert!(matches!(err, VlsError::InvalidConstraints(_)));
 }
 
 #[rstest]

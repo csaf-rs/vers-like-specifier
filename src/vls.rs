@@ -177,12 +177,6 @@ impl FromStr for Vls {
             return Err(VlsError::ContainsVersPrefix);
         }
 
-        // `/` is not a valid character in the vls grammar, but is used as the type delimiter in vers.
-        // Its presence indicates the string contains a "<type>/" component
-        if trimmed.contains('/') {
-            return Err(VlsError::ContainsVersType);
-        }
-
         // Split the constraints, trimming insignificant whitespace around each one.
         let parts: Vec<&str> = trimmed.split('|').map(str::trim).collect();
 
