@@ -53,6 +53,38 @@ pub struct Vls {
     constraints: Vec<Constraint>,
 }
 
+/// The result of a containment check performed by [`Vls::contains`].
+///
+/// Because the versioning scheme of a [`Vls`] is unspecified, containment can usually only be
+/// resolved when the queried version exactly matches a constraint's version:
+///
+/// * [`Comparator::Equal`], [`Comparator::GreaterThanOrEqual`], [`Comparator::LessThanOrEqual`]:
+///   an exact match means the version is contained (`x = x`, `x >= x`, `x <= x` all hold) →
+///   [`Containment::Contained`].
+/// * [`Comparator::NotEqual`], [`Comparator::LessThan`], [`Comparator::GreaterThan`]:
+///   an exact match means the version is explicitly not contained (`x != x`, `x < x`, `x > x`
+///   are always false) → [`Containment::NotContained`].
+/// * No constraint's version matches exactly: containment cannot be resolved (the versioning
+///   scheme is unknown) → [`Containment::Undetermined`].
+///
+/// The one exception is a [`Vls`] that pins a single version (see [`Vls::is_single_version`]):
+/// since it has exactly one [`Comparator::Equal`] constraint, containment reduces to a plain
+/// string comparison and is always decidable, regardless of versioning scheme. In that case,
+/// *any* queried version resolves to either [`Containment::Contained`] or
+/// [`Containment::NotContained`], never [`Containment::Undetermined`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub enum Containment {
+    /// The version is contained in the specifier.
+    Contained,
+    /// The version is explicitly not contained in the specifier.
+    NotContained,
+    /// Containment could not be determined: the version does not exactly match any
+    /// constraint, and the (unspecified) versioning scheme does not allow any further
+    /// comparison.
+    Undetermined,
+}
+
 impl Vls {
     /// Return the constraints.
     pub fn constraints(&self) -> &[Constraint] {
@@ -65,7 +97,7 @@ impl Vls {
         self.constraints.len() == 1 && matches!(self.constraints[0].comparator(), Comparator::Equal)
     }
 
-    /// Return `true` if this specifier contains exactly the given `version`.
+    /// Return the [`Containment`] of the given `version` in this specifier.
     ///
     /// Because the versioning scheme of a [`Vls`] is unspecified, order-based containment
     /// checks (e.g. whether some version falls between two others) are not possible. Only
@@ -73,14 +105,19 @@ impl Vls {
     ///
     /// * [`Comparator::Equal`], [`Comparator::GreaterThanOrEqual`], [`Comparator::LessThanOrEqual`]:
     ///   if their version is exactly equal to `version`, it is contained (`x = x`, `x >= x`, `x <= x`
-    ///   all hold).
+    ///   all hold) → [`Containment::Contained`].
     /// * [`Comparator::NotEqual`]: if its version is exactly equal to `version`, it is explicitly
-    ///   excluded, so it is not contained.
+    ///   excluded, so it is not contained → [`Containment::NotContained`].
     /// * [`Comparator::LessThan`], [`Comparator::GreaterThan`]: an exact match can never be
-    ///   contained, since `x < x` and `x > x` are always false.
+    ///   contained, since `x < x` and `x > x` are always false → [`Containment::NotContained`].
     ///
     /// If `version` does not exactly match any constraint's version, containment cannot be
-    /// determined (the versioning scheme is unknown), so this returns `false`.
+    /// determined (the versioning scheme is unknown), so this returns [`Containment::Undetermined`].
+    ///
+    /// **Exception:** if this [`Vls`] pins a single version (see [`Vls::is_single_version`]), its
+    /// one [`Comparator::Equal`] constraint makes containment decidable via plain string equality
+    /// alone, so `version` always resolves to [`Containment::Contained`] or
+    /// [`Containment::NotContained`] — never [`Containment::Undetermined`].
     ///
     /// Note that a [`Vls`] cannot contain two constraints with the same version string (regardless
     /// of comparator), so at most one constraint can ever match `version` exactly.
@@ -91,27 +128,41 @@ impl Vls {
     /// # Examples
     ///
     /// ```
-    /// use vers_like_specifier::Vls;
+    /// use vers_like_specifier::{Containment, Vls};
     ///
     /// let vls: Vls = ">=1.0.0|!=1.5.0|<=2.0.0".parse().unwrap();
-    /// assert!(vls.contains("1.0.0"));
-    /// assert!(vls.contains("2.0.0"));
-    /// assert!(!vls.contains("1.5.0"));
-    /// assert!(!vls.contains("1.6.0"));
-    /// assert!(vls.contains("  1.0.0  "));
+    /// assert_eq!(vls.contains("1.0.0"), Containment::Contained);
+    /// assert_eq!(vls.contains("2.0.0"), Containment::Contained);
+    /// assert_eq!(vls.contains("1.5.0"), Containment::NotContained);
+    /// assert_eq!(vls.contains("1.6.0"), Containment::Undetermined);
+    /// assert_eq!(vls.contains("  1.0.0  "), Containment::Contained);
+    ///
+    /// // A single pinned version is always decidable, even for versions that don't match.
+    /// let pinned: Vls = "1.0.0".parse().unwrap();
+    /// assert_eq!(pinned.contains("1.0.0"), Containment::Contained);
+    /// assert_eq!(pinned.contains("2.0.0"), Containment::NotContained);
     /// ```
-    pub fn contains(&self, version: &str) -> bool {
+    pub fn contains(&self, version: &str) -> Containment {
         let version = version.trim();
+
+        if self.is_single_version() {
+            return if self.constraints[0].version().as_str() == version {
+                Containment::Contained
+            } else {
+                Containment::NotContained
+            };
+        }
+
         self.constraints
             .iter()
             .find(|c| c.version().as_str() == version)
-            .is_some_and(|c| {
-                matches!(
-                    c.comparator(),
-                    Comparator::Equal
-                        | Comparator::GreaterThanOrEqual
-                        | Comparator::LessThanOrEqual
-                )
+            .map_or(Containment::Undetermined, |c| match c.comparator() {
+                Comparator::Equal
+                | Comparator::GreaterThanOrEqual
+                | Comparator::LessThanOrEqual => Containment::Contained,
+                Comparator::NotEqual | Comparator::LessThan | Comparator::GreaterThan => {
+                    Containment::NotContained
+                }
             })
     }
 }
@@ -135,10 +186,10 @@ impl Vls {
         self.is_single_version()
     }
 
-    /// Return `true` if this specifier contains exactly the given `version`, exposed as the
+    /// Return the [`Containment`] of the given `version` in this specifier, exposed as the
     /// instance method `vls.contains(version)` in JS.
     #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = contains))]
-    pub fn wasm_contains(&self, version: &str) -> bool {
+    pub fn wasm_contains(&self, version: &str) -> Containment {
         self.contains(version)
     }
 }
