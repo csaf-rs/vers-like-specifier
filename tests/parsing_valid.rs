@@ -46,7 +46,7 @@ fn parse_single_versioned_constraint(
 #[case::whitespace_around_pipe(">=1.0 | <=2.0", ">=1.0|<=2.0")]
 #[case::multiple_whitespace_around_pipes(">=1.0  |  <=2.0  |  !=3.0", ">=1.0|<=2.0|!=3.0")]
 #[case::whitespace_after_comparator(">= 1.0", ">=1.0")]
-#[case::whitespace_before_and_after_comparator(">=  1.0", ">=1.0")]
+#[case::multiple_whitespace_after_comparator(">=  1.0", ">=1.0")]
 #[case::whitespace_everywhere("  >=  1.0  |  <=  2.0  ", ">=1.0|<=2.0")]
 #[case::whitespace_before_implicit_equal_version("  1.0  ", "1.0")]
 fn parse_insignificant_whitespace_is_trimmed(#[case] input: &str, #[case] expected: &str) {
