@@ -60,6 +60,8 @@ impl FromStr for Constraint {
     type Err = ConstraintError;
 
     fn from_str(constraint_str: &str) -> Result<Self, Self::Err> {
+        let constraint_str = constraint_str.trim();
+
         // Check if the constraint is empty
         if constraint_str.is_empty() {
             return Err(ConstraintError::EmptyConstraint);
