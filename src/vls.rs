@@ -166,11 +166,10 @@ impl FromStr for Vls {
             return Err(VlsError::ForbiddenAnyUsed);
         }
 
-        // The next two checks are not strictly necessary, as we would try to parse
-        // a string containing the vers URI prefix and / or a type component as part of
-        // the first constraint, which would fail the parsing.
-        // As this library is tightly coupled to csaf-rs, we still include them for easier /
-        // more informative error handling there, as both indicate this might be a vers string.
+        // The next check is not strictly necessary, as we would try to parse
+        // a string containing the vers URI prefix as part of the first constraint, which would fail the parsing.
+        // As this library is tightly coupled to csaf-rs, we still include it for easier /
+        // more informative error handling there, as it indicates this might be a vers string.
 
         // If the string contains the vers URI prefix, return an error
         if trimmed.starts_with("vers:") {
