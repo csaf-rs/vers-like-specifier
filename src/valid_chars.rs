@@ -1,28 +1,7 @@
-/// The number of valid ASCII codepoints (0–127)
-const ASCII_TABLE_SIZE: usize = 128;
-
-/// A lookup table mapping ASCII codepoints (0–127) to character validity
-type AsciiLookup = [bool; ASCII_TABLE_SIZE];
-
-/// O(1) compile-time generated lookup of ASCII characters validity.
-/// Creates an `AsciiLookup`, `valid_special` ASCII characters are mapped to their codepoint (0 - 127).
-/// If the char is valid, the bool in the resulting `AsciiLookup` is set to true.
-const fn build_lookup(valid_special: &str) -> AsciiLookup {
-    let mut table = [false; ASCII_TABLE_SIZE];
-    let bytes = valid_special.as_bytes();
-    let mut i = 0;
-    while i < bytes.len() {
-        if (bytes[i] as usize) < ASCII_TABLE_SIZE {
-            table[bytes[i] as usize] = true;
-        } else {
-            panic!(
-                "Only ASCII characters (0-127) are allowed in the special character set lookup, found a byte value >= 128. This is a developer error."
-            );
-        }
-        i += 1;
-    }
-    table
-}
+/// The seven characters VERS reserves for `comparator`s, the `*` ("any version") token, and the
+/// `|` segment delimiter. These must be percent-encoded if they are to appear literally within a
+/// `version-string` (see ECMA VERS section 5.3.3.2).
+const RESERVED_VERSION_CHARS: [char; 7] = ['>', '<', '=', '!', '*', '|', '%'];
 
 /// Identifies which set of characters is considered valid in a given context.
 pub enum VlsSpecialCharSet {
@@ -35,31 +14,34 @@ pub enum VlsSpecialCharSet {
 }
 
 impl VlsSpecialCharSet {
-    fn get_lookup(&self) -> &'static AsciiLookup {
-        // Generate compile-time lookups.
-        //
-        // The version-string special characters follow the ECMA VERS specification
-        // (https://ecma-tc54.github.io/ECMA-xxx-VERS/), section 5.3.3.2: a `version` may
-        // contain any printable ASCII punctuation character, *except* for the seven characters
-        // VERS reserves for `comparator`s and the `|` segment delimiter (`>`, `<`, `=`, `!`,
-        // `*`, `|`, `%`), which VERS requires to be percent-encoded when they appear literally
-        // in a version. Percent-encoded triplets are handled separately by
-        // `collect_invalid_version_characters`.
-        const VERSION_STRING: AsciiLookup = build_lookup("\"#$&'()+,-./:;?@[\\]^_`{}~");
-        // The constraints-level special characters are the version-string special characters,
-        // plus the comparator characters (`=`, `!`, `<`, `>`), the `|` segment delimiter, and
-        // `%` (allowed unconditionally at this coarse level; whether a given `%` starts a
-        // well-formed percent-encoded triplet is checked later, at the version-string level).
-        const CONSTRAINTS_STRING: AsciiLookup = build_lookup("\"#$&'()+,-./:;?@[\\]^_`{}~=!<>|%");
+    /// Returns `true` if `ch` is an ASCII punctuation character allowed, unencoded, in this
+    /// character set.
+    ///
+    /// A VLS string may contain any printable ASCII punctuation character
+    /// (`char::is_ascii_punctuation`), except for a handful reserved for grammar purposes:
+    ///
+    /// - For `VersionString`, the seven characters VERS reserves for `comparator`s and the `|`
+    ///   segment delimiter (`>`, `<`, `=`, `!`, `*`, `|`, `%`) must instead appear in their
+    ///   percent-encoded form; well-formed percent-encoded triplets are handled separately by
+    ///   `collect_invalid_version_characters`.
+    /// - For `ConstraintsString`, only `*` (the "any version" token, forbidden everywhere in a
+    ///   VLS string) is excluded; the other six reserved characters are allowed unconditionally
+    ///   at this coarse level, since they form part of the `comparator` / `|` delimiter syntax.
+    ///   Whether a literal, un-encoded occurrence of one of them is valid within a given version
+    ///   string is checked later, at the version-string level.
+    fn is_valid_punctuation(&self, ch: char) -> bool {
+        if !ch.is_ascii_punctuation() {
+            return false;
+        }
         match self {
-            VlsSpecialCharSet::VersionString => &VERSION_STRING,
-            VlsSpecialCharSet::ConstraintsString => &CONSTRAINTS_STRING,
+            VlsSpecialCharSet::VersionString => !RESERVED_VERSION_CHARS.contains(&ch),
+            VlsSpecialCharSet::ConstraintsString => ch != '*',
         }
     }
 }
 
-/// Collects characters from `input` that are **not** ASCII-alphanumeric and **not**
-/// contained in `special_charset`, returning them sorted and deduplicated.
+/// Collects characters from `input` that are **not** ASCII-alphanumeric and **not** considered
+/// valid punctuation for `special_charset`, returning them sorted and deduplicated.
 ///
 /// Whitespace is always considered valid at this level, as it is permitted everywhere in a VLS
 /// string except within a version string itself.
@@ -76,13 +58,11 @@ pub fn collect_invalid_characters(
         return collect_invalid_version_characters(input);
     }
 
-    let lookup = special_charset.get_lookup();
     let mut invalid: Vec<char> = input
         .chars()
         .filter(|ch| {
-            let idx = *ch as usize;
             !(ch.is_ascii_alphanumeric()
-                || (idx < ASCII_TABLE_SIZE && lookup[idx])
+                || special_charset.is_valid_punctuation(*ch)
                 || ch.is_whitespace())
         })
         .collect();
@@ -113,7 +93,6 @@ pub fn collect_invalid_characters(
 ///
 /// Returns `None` if every character (or well-formed percent-encoded triplet) is valid.
 fn collect_invalid_version_characters(input: &str) -> Option<Vec<char>> {
-    let lookup = VlsSpecialCharSet::VersionString.get_lookup();
     let chars: Vec<char> = input.chars().collect();
     let mut invalid: Vec<char> = Vec::new();
 
@@ -135,8 +114,8 @@ fn collect_invalid_version_characters(input: &str) -> Option<Vec<char>> {
             continue;
         }
 
-        let idx = ch as usize;
-        let is_valid = ch.is_ascii_alphanumeric() || (idx < ASCII_TABLE_SIZE && lookup[idx]);
+        let is_valid =
+            ch.is_ascii_alphanumeric() || VlsSpecialCharSet::VersionString.is_valid_punctuation(ch);
         if !is_valid {
             invalid.push(ch);
         }
