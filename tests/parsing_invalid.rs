@@ -2,9 +2,12 @@ use rstest::rstest;
 use std::collections::BTreeSet;
 use vers_like_specifier::{ConstraintError, Vls, VlsError};
 
-#[test]
-fn parse_empty_string_is_error() {
-    let err = "".parse::<Vls>().unwrap_err();
+#[rstest]
+#[case::empty("")]
+#[case::only_whitespace(" ")]
+#[case::only_multi_whitespace("   ")]
+fn parse_empty_string_is_error(#[case] input: &str) {
+    let err = input.parse::<Vls>().unwrap_err();
     assert!(matches!(err, VlsError::EmptyInput));
 }
 
@@ -15,6 +18,8 @@ fn parse_wildcard_is_error() {
 }
 
 #[rstest]
+#[case::unicode_letter(">=1.0café", vec!['é'])]
+#[case::unicode_in_both_segments("café|naïve", vec!['é', 'ï'])]
 #[case::space_in_version(">=1.0 beta", vec![' '])]
 #[case::whitespace_around_pipe(">=1.0 | <=2.0", vec![' '])]
 #[case::comma(">=1,0", vec![','])]
@@ -31,6 +36,7 @@ fn parse_wildcard_is_error() {
 #[case::vers_uri_prefix_wildcard("vers:all/*", vec!['*', '/', ':'])]
 #[case::vers_type("gem/>=2.2.0", vec!['/'])]
 #[case::only_type_delimiter("/>=2.2.0", vec!['/'])]
+#[case::star_and_unicode("*1.0café", vec!['*', 'é'])]
 fn parse_invalid_constraints_chars_is_error(
     #[case] input: &str,
     #[case] expected_chars: Vec<char>,
@@ -94,6 +100,16 @@ fn parse_empty_version_is_error(#[case] input: &str, #[case] expected_count: usi
 #[case::less_than_in_version(">=1.0<2", vec![vec!['<']])]
 #[case::greater_than_in_version(">=1.0>2", vec![vec!['>']])]
 #[case::multiple_invalid_in_version(">=1.0=!beta", vec![vec!['!', '=']])]
+#[case::space_in_version(">=1.0 beta", vec![vec![' ']])]
+#[case::multiple_spaces_in_version(">=1.0  beta  rc1", vec![vec![' ']])]
+#[case::space_with_otherwise_valid_punctuation(">=1,0 beta", vec![vec![' ']])]
+#[case::bare_percent_sign(">=1.0%gobeta", vec![vec!['%']])]
+#[case::percent_with_invalid_hex(">=1.0%zzbeta", vec![vec!['%']])]
+#[case::percent_with_one_invalid_hex_digit(">=1.0%4zbeta", vec![vec!['%']])]
+#[case::percent_with_incomplete_hex(">=1.0%3", vec![vec!['%']])]
+#[case::percent_at_end_of_version(">=1.0%", vec![vec!['%']])]
+#[case::multiple_bare_percents(">=1.0%go%zz", vec![vec!['%']])]
+#[case::literal_reserved_char_still_invalid_alongside_valid_escape(">=1.0%41!beta", vec![vec!['!']])]
 fn parse_invalid_version_characters_is_error(
     #[case] input: &str,
     #[case] expected_chars: Vec<Vec<char>>,

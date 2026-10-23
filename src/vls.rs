@@ -25,7 +25,7 @@ use std::str::FromStr;
 ///
 /// # Syntax
 ///
-/// Derived from the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse) and
+/// Derived from the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse),
 /// its comments in
 /// [CSAF 2.0](https://docs.oasis-open.org/csaf/csaf/v2.0/os/csaf-v2.0-os.html#31232-branches-type---name-under-product-version-range)
 /// and
@@ -204,12 +204,12 @@ impl FromStr for Vls {
         let s = s.trim();
 
         // If the string is empty, return an error
-        if s.is_empty() {
+        if trimmed.is_empty() {
             return Err(VlsError::EmptyInput);
         }
 
         // If the string is a single wildcard, return an error
-        if s == "*" {
+        if trimmed == "*" {
             return Err(VlsError::ForbiddenAnyUsed);
         }
 
@@ -217,9 +217,6 @@ impl FromStr for Vls {
         if let Some(invalid) = collect_invalid_characters(s, VlsSpecialCharSet::ConstraintsString) {
             return Err(VlsError::InvalidCharacters(invalid));
         }
-
-        // Split the constraints
-        let parts: Vec<&str> = s.split('|').collect();
 
         // Parse the constraints, generating parsed Constraint or ConstraintErrors for each
         let mut constraints: Vec<Constraint> = Vec::with_capacity(parts.len());
