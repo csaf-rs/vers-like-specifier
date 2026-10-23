@@ -27,7 +27,7 @@ vers-like-specifier = "0.1"
 ## Usage
 
 ```rust
-use vers_like_specifier::{Vls, Comparator};
+use vers_like_specifier::{Vls, Comparator, Containment};
 
 let vls: Vls = ">=1.0.0|<2.0.0".parse().unwrap();
 assert_eq!(vls.constraints().len(), 2);
@@ -39,23 +39,36 @@ assert_eq!(constraints[0].comparator(), &Comparator::GreaterThanOrEqual);
 assert_eq!(constraints[0].version().to_string(), "1.0.0");
 assert_eq!(constraints[1].comparator(), &Comparator::LessThan);
 assert_eq!(constraints[1].version().to_string(), "2.0.0");
+
+// Because the versioning scheme is unknown, `contains` can only resolve a definite
+// answer when a version exactly matches a constraint; otherwise it is `Undetermined`.
+assert_eq!(vls.contains("1.0.0"), Containment::Contained);
+assert_eq!(vls.contains("2.0.0"), Containment::NotContained);
+assert_eq!(vls.contains("1.5.0"), Containment::Undetermined);
+
+// The one exception: a vls pinning a single version is always decidable, since
+// containment then reduces to a plain string comparison.
+let pinned: Vls = "1.0.0".parse().unwrap();
+assert_eq!(pinned.contains("1.0.0"), Containment::Contained);
+assert_eq!(pinned.contains("2.0.0"), Containment::NotContained);
 ```
 
 ### JavaScript / WASM Usage
 
 ```js
-import init, { Vls, Constraint, Comparator } from "@csaf-rs/vers-like-specifier";
+import init, { Vls, Constraint, Comparator, Containment } from "@csaf-rs/vers-like-specifier";
 
 await init();
 
 const vls = Vls.parse(">=1.0.0|<2.0.0");
 console.log(vls.isSingleVersion()); // false
 
-const single = Vls.parse("=1.0.0");
-console.log(single.isSingleVersion()); // true
-
 const constraint = new Constraint(Comparator.GreaterThanOrEqual, "1.0.0");
 console.log(constraint.version); // "1.0.0"
+
+console.log(vls.contains("1.0.0") === Containment.Contained); // true (matches the >= constraint exactly)
+console.log(vls.contains("2.0.0") === Containment.NotContained); // true (2.0.0 < 2.0.0 is always false)
+console.log(vls.contains("1.5.0") === Containment.Undetermined); // true (can't be resolved; versioning scheme is unknown)
 
 try {
   Vls.parse("*");

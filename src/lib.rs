@@ -10,6 +10,7 @@
 //! | [`Constraint`] | A [`Comparator`] / [`VersionString`] pair |
 //! | [`Comparator`] | A comparator used by [`Constraint`] |
 //! | [`VersionString`] | A validated version string, used by [`Constraint`] |
+//! | [`Containment`] | The tri-state result of [`Vls::contains`] |
 //!
 //! ## Error Types
 //!
@@ -19,7 +20,7 @@
 //! | [`ConstraintError`] | Returned when parsing a single [`Constraint`] fails |
 
 pub use constraint::{Comparator, Constraint, ConstraintError, VersionString};
-pub use vls::{Vls, VlsError};
+pub use vls::{Containment, Vls, VlsError};
 
 mod comparator;
 mod constraint;

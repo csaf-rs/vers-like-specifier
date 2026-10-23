@@ -29,71 +29,10 @@ use std::str::FromStr;
 /// its comments in
 /// [CSAF 2.0](https://docs.oasis-open.org/csaf/csaf/v2.0/os/csaf-v2.0-os.html#31232-branches-type---name-under-product-version-range)
 /// and
-/// [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range),
-/// and the [draft ECMA VERS specification](https://ecma-tc54.github.io/ECMA-xxx-VERS/), which as
-/// of this writing has not yet been ratified.
+/// [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range).
 ///
-/// Because a VLS string is only the `<constraints>` part of a full `vers:<type>/<constraints>`
-/// URI, and CSAF leaves the `<constraints>` grammar otherwise unspecified, this is a best-effort
-/// grammar used by this library. It deliberately diverges from the (draft) ECMA VERS
-/// specification in a few ways:
-///
-/// - A VLS string has no `vers:` scheme and no `<type>` component; it is only the
-///   `<constraints>` part.
-/// - The `*` ("any version") comparator from VERS is not supported; see
-///   [`VlsError::ForbiddenAnyUsed`].
-/// - This library validates that a percent-encoded sequence (`%` followed by two ASCII hex
-///   digits, per RFC 3986) within a version string is syntactically well-formed, but does not
-///   decode it: a parsed [`VersionString`] still contains the percent-encoded form verbatim.
-///   A literal, un-encoded occurrence of one of the seven VERS-reserved characters (`>`, `<`,
-///   `=`, `!`, `*`, `|`, `%`) is rejected, as is a `%` that is not followed by two hex digits.
-/// - VERS does not permit literal ASCII whitespace anywhere (it must be percent-encoded as
-///   `%20`); this library instead treats whitespace *outside* of a version string as
-///   insignificant and trims it before validation, while still rejecting it *within* a version
-///   string. See the whitespace note below for details.
-///
-/// **Note:** This grammar may need to be updated once VERS has been ratified through ECMA, or
-/// following changes to / clarifications of CSAF 2.0 or CSAF 2.1.
-///
-/// ```text
-/// vls             = constraint *( "|" constraint )
-/// constraint      = comparator version-string / version-string
-/// comparator      = "!=" / "<=" / ">=" / "<" / ">"
-/// version-string  = 1*( ALPHA / DIGIT / version-punct / pct-encoded )
-/// pct-encoded     = "%" HEXDIG HEXDIG
-/// ```
-///
-/// `version-punct` follows the printable-ASCII-punctuation rule for a VERS `version`
-/// (ECMA VERS section 5.3.3.2), minus the characters that VERS reserves and requires to be
-/// percent-encoded when used literally in a version: `>`, `<`, `=`, `!`, `*`, `|`, `%`.
-/// Concretely, `version-punct` is one of:
-///
-/// ```text
-/// " # $ & ' ( ) + , - . / : ; ? @ [ \ ] ^ _ ` { } ~
-/// ```
-///
-/// A literal, un-encoded occurrence of one of the seven reserved characters is invalid within
-/// a version string; it must instead appear in its `pct-encoded` percent-encoded form (per
-/// [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-2.1)), e.g. `%3E` for `>`.
-/// This library validates that a `pct-encoded` sequence is syntactically well-formed (`%`
-/// followed by exactly two ASCII hex digits, case insensitive) but does not decode it: a
-/// parsed [`VersionString`] preserves the percent-encoded form verbatim. Validity of a
-/// `pct-encoded` sequence does not depend on which character it decodes to — `%41` (decoding
-/// to the letter `A`) is just as well-formed as `%3E` — since this library does not implement
-/// percent-decoding. A bare `%` not followed by two hex digits is invalid.
-///
-/// For validation, this leads to two sets of characters allowed in the context of the grammar.
-///
-/// For `constraints`: `ALPHA / DIGIT / version-punct / pct-encoded / "=" / "!" / "<" / ">" / "|" / "%"`
-///
-/// For `version-string`: `ALPHA / DIGIT / version-punct / pct-encoded`
-///
-/// Whitespace is insignificant and trimmed before validation anywhere outside of a version
-/// string itself — this includes leading/trailing whitespace, whitespace surrounding the `|`
-/// constraint delimiter, and whitespace between a comparator and its version (e.g.
-/// `" >= 1.0 | <= 2.0 "` is equivalent to `">=1.0|<=2.0"`). Whitespace *within* a version
-/// string, such as `"1.0 beta"`, remains invalid. Note that this diverges from ECMA VERS,
-/// which requires whitespace to always be percent-encoded rather than treated as insignificant.
+/// There currently is no "official" grammar for vers-like specifier / the `<constraints>` part of
+/// vers. This is a best-effort attempt used for this library.
 ///
 /// # Examples
 ///
@@ -114,6 +53,38 @@ pub struct Vls {
     constraints: Vec<Constraint>,
 }
 
+/// The result of a containment check performed by [`Vls::contains`].
+///
+/// Because the versioning scheme of a [`Vls`] is unspecified, containment can usually only be
+/// resolved when the queried version exactly matches a constraint's version:
+///
+/// * [`Comparator::Equal`], [`Comparator::GreaterThanOrEqual`], [`Comparator::LessThanOrEqual`]:
+///   an exact match means the version is contained (`x = x`, `x >= x`, `x <= x` all hold) →
+///   [`Containment::Contained`].
+/// * [`Comparator::NotEqual`], [`Comparator::LessThan`], [`Comparator::GreaterThan`]:
+///   an exact match means the version is explicitly not contained (`x != x`, `x < x`, `x > x`
+///   are always false) → [`Containment::NotContained`].
+/// * No constraint's version matches exactly: containment cannot be resolved (the versioning
+///   scheme is unknown) → [`Containment::Undetermined`].
+///
+/// The one exception is a [`Vls`] that pins a single version (see [`Vls::is_single_version`]):
+/// since it has exactly one [`Comparator::Equal`] constraint, containment reduces to a plain
+/// string comparison and is always decidable, regardless of versioning scheme. In that case,
+/// *any* queried version resolves to either [`Containment::Contained`] or
+/// [`Containment::NotContained`], never [`Containment::Undetermined`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub enum Containment {
+    /// The version is contained in the specifier.
+    Contained,
+    /// The version is explicitly not contained in the specifier.
+    NotContained,
+    /// Containment could not be determined: the version does not exactly match any
+    /// constraint, and the (unspecified) versioning scheme does not allow any further
+    /// comparison.
+    Undetermined,
+}
+
 impl Vls {
     /// Return the constraints.
     pub fn constraints(&self) -> &[Constraint] {
@@ -124,6 +95,75 @@ impl Vls {
     /// i.e. it contains a single equal constraint [`Comparator::Equal`]
     pub fn is_single_version(&self) -> bool {
         self.constraints.len() == 1 && matches!(self.constraints[0].comparator(), Comparator::Equal)
+    }
+
+    /// Return the [`Containment`] of the given `version` in this specifier.
+    ///
+    /// Because the versioning scheme of a [`Vls`] is unspecified, order-based containment
+    /// checks (e.g. whether some version falls between two others) are not possible. Only
+    /// constraints using an exact-match comparator can resolve this check:
+    ///
+    /// * [`Comparator::Equal`], [`Comparator::GreaterThanOrEqual`], [`Comparator::LessThanOrEqual`]:
+    ///   if their version is exactly equal to `version`, it is contained (`x = x`, `x >= x`, `x <= x`
+    ///   all hold) → [`Containment::Contained`].
+    /// * [`Comparator::NotEqual`]: if its version is exactly equal to `version`, it is explicitly
+    ///   excluded, so it is not contained → [`Containment::NotContained`].
+    /// * [`Comparator::LessThan`], [`Comparator::GreaterThan`]: an exact match can never be
+    ///   contained, since `x < x` and `x > x` are always false → [`Containment::NotContained`].
+    ///
+    /// If `version` does not exactly match any constraint's version, containment cannot be
+    /// determined (the versioning scheme is unknown), so this returns [`Containment::Undetermined`].
+    ///
+    /// **Exception:** if this [`Vls`] pins a single version (see [`Vls::is_single_version`]), its
+    /// one [`Comparator::Equal`] constraint makes containment decidable via plain string equality
+    /// alone, so `version` always resolves to [`Containment::Contained`] or
+    /// [`Containment::NotContained`] — never [`Containment::Undetermined`].
+    ///
+    /// Note that a [`Vls`] cannot contain two constraints with the same version string (regardless
+    /// of comparator), so at most one constraint can ever match `version` exactly.
+    ///
+    /// Surrounding whitespace in `version` is stripped before comparing, matching the behavior
+    /// of the constraints a `Vls` is parsed from (which never contain whitespace).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vers_like_specifier::{Containment, Vls};
+    ///
+    /// let vls: Vls = ">=1.0.0|!=1.5.0|<=2.0.0".parse().unwrap();
+    /// assert_eq!(vls.contains("1.0.0"), Containment::Contained);
+    /// assert_eq!(vls.contains("2.0.0"), Containment::Contained);
+    /// assert_eq!(vls.contains("1.5.0"), Containment::NotContained);
+    /// assert_eq!(vls.contains("1.6.0"), Containment::Undetermined);
+    /// assert_eq!(vls.contains("  1.0.0  "), Containment::Contained);
+    ///
+    /// // A single pinned version is always decidable, even for versions that don't match.
+    /// let pinned: Vls = "1.0.0".parse().unwrap();
+    /// assert_eq!(pinned.contains("1.0.0"), Containment::Contained);
+    /// assert_eq!(pinned.contains("2.0.0"), Containment::NotContained);
+    /// ```
+    pub fn contains(&self, version: &str) -> Containment {
+        let version = version.trim();
+
+        if self.is_single_version() {
+            return if self.constraints[0].version().as_str() == version {
+                Containment::Contained
+            } else {
+                Containment::NotContained
+            };
+        }
+
+        self.constraints
+            .iter()
+            .find(|c| c.version().as_str() == version)
+            .map_or(Containment::Undetermined, |c| match c.comparator() {
+                Comparator::Equal
+                | Comparator::GreaterThanOrEqual
+                | Comparator::LessThanOrEqual => Containment::Contained,
+                Comparator::NotEqual | Comparator::LessThan | Comparator::GreaterThan => {
+                    Containment::NotContained
+                }
+            })
     }
 }
 
@@ -145,6 +185,13 @@ impl Vls {
     pub fn wasm_is_single_version(&self) -> bool {
         self.is_single_version()
     }
+
+    /// Return the [`Containment`] of the given `version` in this specifier, exposed as the
+    /// instance method `vls.contains(version)` in JS.
+    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = contains))]
+    pub fn wasm_contains(&self, version: &str) -> Containment {
+        self.contains(version)
+    }
 }
 
 impl FromStr for Vls {
@@ -152,8 +199,8 @@ impl FromStr for Vls {
 
     /// Try to parse the provided string as [Vls].
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        // Whitespace used purely to separate the input (leading/trailing, or around the `|`
-        // constraint delimiter) is insignificant and trimmed away before validation.
+        // Strip surrounding whitespace; literal whitespace remaining within a constraint or
+        // version (after trimming) is rejected further down as an invalid character.
         let trimmed = s.trim();
 
         // If the string is empty, return an error
@@ -166,19 +213,12 @@ impl FromStr for Vls {
             return Err(VlsError::ForbiddenAnyUsed);
         }
 
-        // The next check is not strictly necessary, as we would try to parse
-        // a string containing the vers URI prefix as part of the first constraint, which would fail the parsing.
-        // As this library is tightly coupled to csaf-rs, we still include it for easier /
-        // more informative error handling there, as it indicates this might be a vers string.
-
-        // If the string contains the vers URI prefix, return an error
-        if trimmed.starts_with("vers:") {
-            return Err(VlsError::ContainsVersPrefix);
+        // Reject any character that is not part of the 'constraints' grammar.
+        if let Some(invalid) = collect_invalid_characters(s, VlsSpecialCharSet::ConstraintsString) {
+            return Err(VlsError::InvalidCharacters(invalid));
         }
 
-        // Split the constraints, trimming insignificant whitespace around each one.
         let parts: Vec<&str> = trimmed.split('|').map(str::trim).collect();
-
         // Reject any character that is not part of the 'constraints' grammar. Whitespace is
         // always permitted at this level (it is insignificant anywhere outside of a version
         // string), so any invalid whitespace *within* a version string is instead caught later,

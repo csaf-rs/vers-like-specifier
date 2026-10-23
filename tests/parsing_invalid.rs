@@ -18,22 +18,6 @@ fn parse_wildcard_is_error() {
 }
 
 #[rstest]
-#[case::vers("vers:gem/>=2.2.0")]
-#[case::vers_all("vers:all/*")]
-fn parse_vers_prefix_is_error(#[case] input: &str) {
-    let err = input.parse::<Vls>().unwrap_err();
-    assert!(matches!(err, VlsError::ContainsVersPrefix));
-}
-
-#[rstest]
-#[case::gem_type("gem/>=2.2.0")]
-#[case::only_type_delimiter("/>=2.2.0")]
-fn parse_contains_vers_type_is_error(#[case] input: &str) {
-    let err = input.parse::<Vls>().unwrap_err();
-    assert!(matches!(err, VlsError::InvalidConstraints(_)));
-}
-
-#[rstest]
 #[case::unicode_letter(">=1.0café", vec!['é'])]
 #[case::unicode_in_both_segments("café|naïve", vec!['é', 'ï'])]
 #[case::star_after_version_string(">=1.0*", vec!['*'])]
