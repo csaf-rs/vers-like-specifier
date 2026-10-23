@@ -2,9 +2,12 @@ use rstest::rstest;
 use std::collections::BTreeSet;
 use vers_like_specifier::{ConstraintError, Vls, VlsError};
 
-#[test]
-fn parse_empty_string_is_error() {
-    let err = "".parse::<Vls>().unwrap_err();
+#[rstest]
+#[case::empty("")]
+#[case::only_whitespace(" ")]
+#[case::only_multi_whitespace("   ")]
+fn parse_empty_string_is_error(#[case] input: &str) {
+    let err = input.parse::<Vls>().unwrap_err();
     assert!(matches!(err, VlsError::EmptyInput));
 }
 
@@ -27,26 +30,16 @@ fn parse_vers_prefix_is_error(#[case] input: &str) {
 #[case::only_type_delimiter("/>=2.2.0")]
 fn parse_contains_vers_type_is_error(#[case] input: &str) {
     let err = input.parse::<Vls>().unwrap_err();
-    assert!(matches!(err, VlsError::ContainsVersType));
+    assert!(matches!(err, VlsError::InvalidConstraints(_)));
 }
 
 #[rstest]
-#[case::space_in_version(">=1.0 beta", vec![' '])]
-#[case::leading_whitespace(" >=1.0", vec![' '])]
-#[case::trailing_whitespace(">=1.0 ", vec![' '])]
-#[case::whitespace_around_pipe(">=1.0 | <=2.0", vec![' '])]
-#[case::only_whitespace(" ", vec![' '])]
-#[case::only_multi_whitespace("   ", vec![' '])]
-#[case::comma(">=1,0", vec![','])]
-#[case::at_sign(">=1.0@beta", vec!['@'])]
-#[case::hash("1.0#rc1", vec!['#'])]
-#[case::dollar_sign(">=1.0|<=2.0$beta", vec!['$'])]
-#[case::space_and_comma(">=1,0 beta", vec![' ', ','])]
-#[case::hash_and_at("1.0#rc1@beta", vec!['#', '@'])]
-#[case::multiple_different("$1.0 @2.0#3", vec![' ', '#', '$', '@'])]
+#[case::unicode_letter(">=1.0café", vec!['é'])]
+#[case::unicode_in_both_segments("café|naïve", vec!['é', 'ï'])]
 #[case::star_after_version_string(">=1.0*", vec!['*'])]
 #[case::star_before_version_string(">=*1.0", vec!['*'])]
 #[case::star_before_comparator("*>=1.0*", vec!['*'])]
+#[case::star_and_unicode("*1.0café", vec!['*', 'é'])]
 fn parse_invalid_constraints_chars_is_error(
     #[case] input: &str,
     #[case] expected_chars: Vec<char>,
@@ -110,6 +103,16 @@ fn parse_empty_version_is_error(#[case] input: &str, #[case] expected_count: usi
 #[case::less_than_in_version(">=1.0<2", vec![vec!['<']])]
 #[case::greater_than_in_version(">=1.0>2", vec![vec!['>']])]
 #[case::multiple_invalid_in_version(">=1.0=!beta", vec![vec!['!', '=']])]
+#[case::space_in_version(">=1.0 beta", vec![vec![' ']])]
+#[case::multiple_spaces_in_version(">=1.0  beta  rc1", vec![vec![' ']])]
+#[case::space_with_otherwise_valid_punctuation(">=1,0 beta", vec![vec![' ']])]
+#[case::bare_percent_sign(">=1.0%gobeta", vec![vec!['%']])]
+#[case::percent_with_invalid_hex(">=1.0%zzbeta", vec![vec!['%']])]
+#[case::percent_with_one_invalid_hex_digit(">=1.0%4zbeta", vec![vec!['%']])]
+#[case::percent_with_incomplete_hex(">=1.0%3", vec![vec!['%']])]
+#[case::percent_at_end_of_version(">=1.0%", vec![vec!['%']])]
+#[case::multiple_bare_percents(">=1.0%go%zz", vec![vec!['%']])]
+#[case::literal_reserved_char_still_invalid_alongside_valid_escape(">=1.0%41!beta", vec![vec!['!']])]
 fn parse_invalid_version_characters_is_error(
     #[case] input: &str,
     #[case] expected_chars: Vec<Vec<char>>,

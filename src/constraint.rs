@@ -60,6 +60,8 @@ impl FromStr for Constraint {
     type Err = ConstraintError;
 
     fn from_str(constraint_str: &str) -> Result<Self, Self::Err> {
+        let constraint_str = constraint_str.trim();
+
         // Check if the constraint is empty
         if constraint_str.is_empty() {
             return Err(ConstraintError::EmptyConstraint);
@@ -67,6 +69,11 @@ impl FromStr for Constraint {
 
         // Match the comparators
         let (comparator, version_str) = Comparator::extract_comparator(constraint_str);
+
+        // Whitespace directly surrounding the version string (e.g. between the comparator and
+        // the version in ">= 1.0") is insignificant and trimmed before validation. Whitespace
+        // *within* the version string itself remains invalid.
+        let version_str = version_str.trim();
 
         // Parse and validate the version string (checks empty + invalid chars)
         let version: VersionString = version_str.parse()?;
