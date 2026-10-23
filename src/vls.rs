@@ -201,7 +201,7 @@ impl FromStr for Vls {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // Strip surrounding whitespace; literal whitespace remaining within a constraint or
         // version (after trimming) is rejected further down as an invalid character.
-        let s = s.trim();
+        let trimmed = s.trim();
 
         // If the string is empty, return an error
         if trimmed.is_empty() {
@@ -215,6 +215,18 @@ impl FromStr for Vls {
 
         // Reject any character that is not part of the 'constraints' grammar.
         if let Some(invalid) = collect_invalid_characters(s, VlsSpecialCharSet::ConstraintsString) {
+            return Err(VlsError::InvalidCharacters(invalid));
+        }
+
+        let parts: Vec<&str> = trimmed.split('|').map(str::trim).collect();
+        // Reject any character that is not part of the 'constraints' grammar. Whitespace is
+        // always permitted at this level (it is insignificant anywhere outside of a version
+        // string), so any invalid whitespace *within* a version string is instead caught later,
+        // when each constraint's version string is parsed and validated on its own.
+        let joined = parts.join("|");
+        if let Some(invalid) =
+            collect_invalid_characters(&joined, VlsSpecialCharSet::ConstraintsString)
+        {
             return Err(VlsError::InvalidCharacters(invalid));
         }
 
