@@ -11,9 +11,9 @@ use std::collections::{BTreeSet, HashSet};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 
-/// A **Vers-like Specifier** (VLS).
+/// A **VERS-like specifier** (vls).
 ///
-/// VLS is the `<constraints>` part of a [vers](https://github.com/package-url/vers-spec)
+/// vls is the `<constraints>` part of a [VERS](https://github.com/package-url/vers-spec)
 /// URL *without* the `vers:<type>/` prefix.
 ///
 /// It is an ordered, `|`-separated list of [`Constraint`] values.
@@ -25,14 +25,14 @@ use std::str::FromStr;
 ///
 /// # Syntax
 ///
-/// Derived from the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse),
+/// Derived from the [VERS specification](https://www.packageurl.org/docs/vers/how-to-parse),
 /// its comments in
 /// [CSAF 2.0](https://docs.oasis-open.org/csaf/csaf/v2.0/os/csaf-v2.0-os.html#31232-branches-type---name-under-product-version-range)
 /// and
 /// [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range).
 ///
-/// There currently is no "official" grammar for vers-like specifier / the `<constraints>` part of
-/// vers. This is a best-effort attempt used for this library.
+/// There currently is no "official" grammar for VERS-like specifier / the `<constraints>` part of
+/// VERS. This is a best-effort attempt used for this library.
 ///
 /// # Examples
 ///
@@ -173,7 +173,7 @@ impl Vls {
     /// Parse a `vls` as a [`Vls`] string, exposed as the static `Vls.parse(vls)` in JS.
     ///
     /// # Errors
-    /// Throws a JS `Error` if `vls` is not a valid vers-like specifier.
+    /// Throws a JS `Error` if `vls` is not a valid VERS-like specifier.
     #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = parse))]
     pub fn wasm_parse(vls: &str) -> Result<Vls, VlsError> {
         vls.parse()

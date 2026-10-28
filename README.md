@@ -3,9 +3,9 @@
 [![crates.io](https://img.shields.io/crates/v/vers-like-specifier.svg)](https://crates.io/crates/vers-like-specifier)
 [![npm](https://img.shields.io/npm/v/%40csaf-rs%2Fvers-like-specifier.svg)](https://www.npmjs.com/package/@csaf-rs/vers-like-specifier)
 
-A Rust library for parsing and validating **Vers-like Specifiers** (vls) as defined in [CSAF 2.0](https://docs.oasis-open.org/csaf/csaf/v2.0/os/csaf-v2.0-os.html#31232-branches-type---name-under-product-version-range) and [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range).
+A Rust library for parsing and validating **VERS-like Specifiers** (vls) as defined in [CSAF 2.0](https://docs.oasis-open.org/csaf/csaf/v2.0/os/csaf-v2.0-os.html#31232-branches-type---name-under-product-version-range) and [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range).
 
-vers-like-specifier is the `<constraints>` portion of a [vers](https://github.com/package-url/vers-spec) URL **without** the `vers:<type>/` prefix.
+VERS-like specifier is the `<constraints>` portion of a [VERS](https://github.com/package-url/vers-spec) URL **without** the `vers:<type>/` prefix.
 
 It represents a `|`-separated list of constraints each consisting of an implicit or explicit comparator and a version string.
 
@@ -73,7 +73,7 @@ console.log(vls.contains("1.5.0") === Containment.Undetermined); // true (can't 
 try {
   Vls.parse("*");
 } catch (e) {
-  console.error(e); // Error: '*' (vers syntax for matching all versions) is not allowed as a vls string
+  console.error(e); // Error: '*' (VERS syntax for matching all versions) is not allowed as a vls string
 }
 ```
 
