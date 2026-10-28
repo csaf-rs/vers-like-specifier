@@ -65,7 +65,7 @@ pub struct Vls {
 ///   an exact match means the version is explicitly not contained (`x != x`, `x < x`, `x > x`
 ///   are always false) → [`Containment::NotContained`].
 /// * No constraint's version matches exactly: containment cannot be resolved, as the VERS
-///   type is unknown / unspecified) → [`Containment::Undetermined`].
+///   type is unknown / unspecified → [`Containment::Undetermined`].
 ///
 /// The one exception is a [`Vls`] that pins a single version (see [`Vls::is_single_version`]):
 /// since it has exactly one [`Comparator::Equal`] constraint, containment reduces to a plain
