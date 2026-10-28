@@ -55,7 +55,7 @@ pub struct Vls {
 
 /// The result of a containment check performed by [`Vls::contains`].
 ///
-/// Because the versioning scheme of a [`Vls`] is unspecified, containment can usually only be
+/// Because the VERS type of a [`Vls`] is unspecified, containment can usually only be
 /// resolved when the queried version exactly matches a constraint's version:
 ///
 /// * [`Comparator::Equal`], [`Comparator::GreaterThanOrEqual`], [`Comparator::LessThanOrEqual`]:
@@ -64,12 +64,12 @@ pub struct Vls {
 /// * [`Comparator::NotEqual`], [`Comparator::LessThan`], [`Comparator::GreaterThan`]:
 ///   an exact match means the version is explicitly not contained (`x != x`, `x < x`, `x > x`
 ///   are always false) → [`Containment::NotContained`].
-/// * No constraint's version matches exactly: containment cannot be resolved (the versioning
-///   scheme is unknown) → [`Containment::Undetermined`].
+/// * No constraint's version matches exactly: containment cannot be resolved, as the VERS
+///   type is unknown / unspecified) → [`Containment::Undetermined`].
 ///
 /// The one exception is a [`Vls`] that pins a single version (see [`Vls::is_single_version`]):
 /// since it has exactly one [`Comparator::Equal`] constraint, containment reduces to a plain
-/// string comparison and is always decidable, regardless of versioning scheme. In that case,
+/// string comparison and is always decidable, regardless of VERS type. In that case,
 /// *any* queried version resolves to either [`Containment::Contained`] or
 /// [`Containment::NotContained`], never [`Containment::Undetermined`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
@@ -80,7 +80,7 @@ pub enum Containment {
     /// The version is explicitly not contained in the specifier.
     NotContained,
     /// Containment could not be determined: the version does not exactly match any
-    /// constraint, and the (unspecified) versioning scheme does not allow any further
+    /// constraint, and the (unspecified) VERS type does not allow any further
     /// comparison.
     Undetermined,
 }
@@ -99,7 +99,7 @@ impl Vls {
 
     /// Return the [`Containment`] of the given `version` in this specifier.
     ///
-    /// Because the versioning scheme of a [`Vls`] is unspecified, order-based containment
+    /// Because the VERS type of a [`Vls`] is unspecified, order-based containment
     /// checks (e.g. whether some version falls between two others) are not possible. Only
     /// constraints using an exact-match comparator can resolve this check:
     ///
@@ -112,7 +112,7 @@ impl Vls {
     ///   contained, since `x < x` and `x > x` are always false → [`Containment::NotContained`].
     ///
     /// If `version` does not exactly match any constraint's version, containment cannot be
-    /// determined (the versioning scheme is unknown), so this returns [`Containment::Undetermined`].
+    /// determined (the VERS type is unspecified), so this returns [`Containment::Undetermined`].
     ///
     /// **Exception:** if this [`Vls`] pins a single version (see [`Vls::is_single_version`]), its
     /// one [`Comparator::Equal`] constraint makes containment decidable via plain string equality

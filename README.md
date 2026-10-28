@@ -9,7 +9,7 @@ VERS-like specifier is the `<constraints>` portion of a [VERS](https://github.co
 
 It represents a `|`-separated list of constraints each consisting of an implicit or explicit comparator and a version string.
 
-**Due to the undefined / unknown schema, it is nearly impossible for tools to reliably determine whether a given version is in the range or not. vls is a fallback option and SHOULD NOT be used unless really necessary.**
+**Due to the undefined / unknown VERS type, it is nearly impossible for tools to reliably determine whether a given version is in the range or not. vls is a fallback option and SHOULD NOT be used unless really necessary.**
 
 ## Minimum Supported Rust Version (MSRV)
 
@@ -40,7 +40,7 @@ assert_eq!(constraints[0].version().to_string(), "1.0.0");
 assert_eq!(constraints[1].comparator(), &Comparator::LessThan);
 assert_eq!(constraints[1].version().to_string(), "2.0.0");
 
-// Because the versioning scheme is unknown, `contains` can only resolve a definite
+// Because the VERS type is unknown, `contains` can only resolve a definite
 // answer when a version exactly matches a constraint; otherwise it is `Undetermined`.
 assert_eq!(vls.contains("1.0.0"), Containment::Contained);
 assert_eq!(vls.contains("2.0.0"), Containment::NotContained);
@@ -68,7 +68,7 @@ console.log(constraint.version); // "1.0.0"
 
 console.log(vls.contains("1.0.0") === Containment.Contained); // true (matches the >= constraint exactly)
 console.log(vls.contains("2.0.0") === Containment.NotContained); // true (2.0.0 < 2.0.0 is always false)
-console.log(vls.contains("1.5.0") === Containment.Undetermined); // true (can't be resolved; versioning scheme is unknown)
+console.log(vls.contains("1.5.0") === Containment.Undetermined); // true (can't be resolved; VERS type is unknown)
 
 try {
   Vls.parse("*");
