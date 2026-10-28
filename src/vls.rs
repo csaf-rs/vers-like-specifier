@@ -97,6 +97,16 @@ impl Vls {
         self.constraints.len() == 1 && matches!(self.constraints[0].comparator(), Comparator::Equal)
     }
 
+    /// Return the single version if this specifier describes exactly one version, otherwise `None`.
+    /// See [`Vls::is_single_version`] for details on what constitutes a single version.
+    pub fn get_single_version(&self) -> Option<&VersionString> {
+        if self.is_single_version() {
+            Some(self.constraints[0].version())
+        } else {
+            None
+        }
+    }
+
     /// Return the [`Containment`] of the given `version` in this specifier.
     ///
     /// Because the versioning scheme of a [`Vls`] is unspecified, order-based containment

@@ -37,6 +37,11 @@ fn parse_single_versioned_constraint(
     assert_eq!(*cs[0].comparator(), expected_cmp);
     assert_eq!(cs[0].version().as_str(), expected_ver);
     assert_eq!(v.is_single_version(), expected_is_single_version);
+    if expected_is_single_version {
+        assert_eq!(v.get_single_version().unwrap().as_str(), expected_ver);
+    } else {
+        assert!(v.get_single_version().is_none());
+    }
 }
 
 #[rstest]
