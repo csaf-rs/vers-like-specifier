@@ -1,7 +1,7 @@
-//! # vls — vers-like specifier parser
+//! # vls — VERS-like specifier parser
 //!
-//! `vls` is a parser for **vers-like specifiers** (vls), the `<constraints>` part
-//! of a [vers](https://github.com/package-url/vers-spec) URL *without* the
+//! `vls` is a parser for **VERS-like specifiers** (vls), the `<constraints>` part
+//! of a [VERS](https://github.com/package-url/vers-spec) URL *without* the
 //! `vers:<type>/` prefix.
 //!
 //! | Type | Description |

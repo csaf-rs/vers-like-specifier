@@ -11,9 +11,9 @@ use std::collections::{BTreeSet, HashSet};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 
-/// A **Vers-like Specifier** (VLS).
+/// A **VERS-like specifier** (vls).
 ///
-/// VLS is the `<constraints>` part of a [vers](https://github.com/package-url/vers-spec)
+/// vls is the `<constraints>` part of a [VERS](https://github.com/package-url/vers-spec)
 /// URL *without* the `vers:<type>/` prefix.
 ///
 /// It is an ordered, `|`-separated list of [`Constraint`] values.
@@ -25,14 +25,14 @@ use std::str::FromStr;
 ///
 /// # Syntax
 ///
-/// Derived from the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse),
+/// Derived from the [VERS specification](https://www.packageurl.org/docs/vers/how-to-parse),
 /// its comments in
 /// [CSAF 2.0](https://docs.oasis-open.org/csaf/csaf/v2.0/os/csaf-v2.0-os.html#31232-branches-type---name-under-product-version-range)
 /// and
 /// [CSAF 2.1](https://docs.oasis-open.org/csaf/csaf/v2.1/csaf-v2.1.html#branches-type---name-under-product-version-range).
 ///
-/// There currently is no "official" grammar for vers-like specifier / the `<constraints>` part of
-/// vers. This is a best-effort attempt used for this library.
+/// There currently is no "official" grammar for VERS-like specifier / the `<constraints>` part of
+/// VERS. This is a best-effort attempt used for this library.
 ///
 /// # Examples
 ///
@@ -55,7 +55,7 @@ pub struct Vls {
 
 /// The result of a containment check performed by [`Vls::contains`].
 ///
-/// Because the versioning scheme of a [`Vls`] is unspecified, containment can usually only be
+/// Because the VERS type of a [`Vls`] is unspecified, containment can usually only be
 /// resolved when the queried version exactly matches a constraint's version:
 ///
 /// * [`Comparator::Equal`], [`Comparator::GreaterThanOrEqual`], [`Comparator::LessThanOrEqual`]:
@@ -64,12 +64,12 @@ pub struct Vls {
 /// * [`Comparator::NotEqual`], [`Comparator::LessThan`], [`Comparator::GreaterThan`]:
 ///   an exact match means the version is explicitly not contained (`x != x`, `x < x`, `x > x`
 ///   are always false) → [`Containment::NotContained`].
-/// * No constraint's version matches exactly: containment cannot be resolved (the versioning
-///   scheme is unknown) → [`Containment::Undetermined`].
+/// * No constraint's version matches exactly: containment cannot be resolved, as the VERS
+///   type is unknown / unspecified → [`Containment::Undetermined`].
 ///
 /// The one exception is a [`Vls`] that pins a single version (see [`Vls::is_single_version`]):
 /// since it has exactly one [`Comparator::Equal`] constraint, containment reduces to a plain
-/// string comparison and is always decidable, regardless of versioning scheme. In that case,
+/// string comparison and is always decidable, regardless of VERS type. In that case,
 /// *any* queried version resolves to either [`Containment::Contained`] or
 /// [`Containment::NotContained`], never [`Containment::Undetermined`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
@@ -80,7 +80,7 @@ pub enum Containment {
     /// The version is explicitly not contained in the specifier.
     NotContained,
     /// Containment could not be determined: the version does not exactly match any
-    /// constraint, and the (unspecified) versioning scheme does not allow any further
+    /// constraint, and the (unspecified) VERS type does not allow any further
     /// comparison.
     Undetermined,
 }
@@ -99,7 +99,7 @@ impl Vls {
 
     /// Return the [`Containment`] of the given `version` in this specifier.
     ///
-    /// Because the versioning scheme of a [`Vls`] is unspecified, order-based containment
+    /// Because the VERS type of a [`Vls`] is unspecified, order-based containment
     /// checks (e.g. whether some version falls between two others) are not possible. Only
     /// constraints using an exact-match comparator can resolve this check:
     ///
@@ -112,7 +112,7 @@ impl Vls {
     ///   contained, since `x < x` and `x > x` are always false → [`Containment::NotContained`].
     ///
     /// If `version` does not exactly match any constraint's version, containment cannot be
-    /// determined (the versioning scheme is unknown), so this returns [`Containment::Undetermined`].
+    /// determined (the VERS type is unspecified), so this returns [`Containment::Undetermined`].
     ///
     /// **Exception:** if this [`Vls`] pins a single version (see [`Vls::is_single_version`]), its
     /// one [`Comparator::Equal`] constraint makes containment decidable via plain string equality
@@ -173,7 +173,7 @@ impl Vls {
     /// Parse a `vls` as a [`Vls`] string, exposed as the static `Vls.parse(vls)` in JS.
     ///
     /// # Errors
-    /// Throws a JS `Error` if `vls` is not a valid vers-like specifier.
+    /// Throws a JS `Error` if `vls` is not a valid VERS-like specifier.
     #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = parse))]
     pub fn wasm_parse(vls: &str) -> Result<Vls, VlsError> {
         vls.parse()
