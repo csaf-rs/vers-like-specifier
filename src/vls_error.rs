@@ -17,6 +17,10 @@ pub enum VlsError {
     #[error("'*' (vers syntax for matching all versions) is not allowed as a vls string")]
     ForbiddenAnyUsed,
 
+    /// The input contains a single version, which is not a valid vls.
+    #[error("A single version '{0}' is not valid as a vls string")]
+    SingleVersionNotAllowed(String),
+
     /// The input contains characters not allowed by the VLS grammar.
     /// See [`Vls`](crate::Vls) for more details on the grammar.
     #[error("Invalid character(s) in VLS: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]

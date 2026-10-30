@@ -46,11 +46,13 @@ assert_eq!(vls.contains("1.0.0"), Containment::Contained);
 assert_eq!(vls.contains("2.0.0"), Containment::NotContained);
 assert_eq!(vls.contains("1.5.0"), Containment::Undetermined);
 
-// The one exception: a vls pinning a single version is always decidable, since
-// containment then reduces to a plain string comparison.
-let pinned: Vls = "1.0.0".parse().unwrap();
-assert_eq!(pinned.contains("1.0.0"), Containment::Contained);
-assert_eq!(pinned.contains("2.0.0"), Containment::NotContained);
+// The one exception: a vls containing only exact-match comparators (equal, not equal) is always decidable, since
+// containment then reduces to a plain string comparison if there is a constraint with that version. If there isn't a
+// constraint with the version, it is not contained by default. 
+let exact_only: Vls = "1.0.0|!=2.0.0.parse().unwrap();
+assert_eq!(exact_only.contains("1.0.0"), Containment::Contained);
+assert_eq!(exact_only.contains("2.0.0"), Containment::NotContained);
+assert_eq!(exact_only.contains("3.0.0"), Containment::NotContained);
 ```
 
 ### JavaScript / WASM Usage
@@ -61,8 +63,6 @@ import init, { Vls, Constraint, Comparator, Containment } from "@csaf-rs/vers-li
 await init();
 
 const vls = Vls.parse(">=1.0.0|<2.0.0");
-console.log(vls.isSingleVersion()); // false
-
 const constraint = new Constraint(Comparator.GreaterThanOrEqual, "1.0.0");
 console.log(constraint.version); // "1.0.0"
 
