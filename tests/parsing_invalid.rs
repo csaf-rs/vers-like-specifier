@@ -18,6 +18,24 @@ fn parse_wildcard_is_error() {
 }
 
 #[rstest]
+#[case("1.0.0")]
+#[case("1.0#rc1")]
+#[case("1.0'beta")]
+#[case("1.0;2")]
+#[case("1.0?beta")]
+#[case("1.0[2]")]
+#[case("1.0^2")]
+#[case("1.0{2}")]
+#[case("1.0\"beta\"")]
+fn parse_single_version_is_error(#[case] input: &str) {
+    let err = input.parse::<Vls>().unwrap_err();
+    assert!(matches!(
+        err,
+        VlsError::SingleVersionNotAllowed(version) if version == input
+    ));
+}
+
+#[rstest]
 #[case::unicode_letter(">=1.0café", vec!['é'])]
 #[case::unicode_in_both_segments("café|naïve", vec!['é', 'ï'])]
 #[case::star_after_version_string(">=1.0*", vec!['*'])]
