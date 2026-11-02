@@ -67,11 +67,12 @@ pub struct Vls {
 /// * No constraint's version matches exactly: containment cannot be resolved, as the VERS
 ///   type is unknown / unspecified → [`Containment::Undetermined`].
 ///
-/// The one exception is a [`Vls`] that pins a single version (see [`Vls::is_single_version`]):
-/// since it has exactly one [`Comparator::Equal`] constraint, containment reduces to a plain
-/// string comparison and is always decidable, regardless of VERS type. In that case,
-/// *any* queried version resolves to either [`Containment::Contained`] or
-/// [`Containment::NotContained`], never [`Containment::Undetermined`].
+/// The one exception is a [`Vls`] that uses only exact-match comparators (i.e.
+/// [`Comparator::Equal`] and/or [`Comparator::NotEqual`]).
+/// Here, containment is reduced to a plain string comparison and is always decidable,
+/// regardless of VERS type. In that case, *any* queried version resolves to either [`Containment::Contained`] or
+/// [`Containment::NotContained`] depending on the exact-match comparator if there is a constraint with
+/// the queried version, and always to [`Containment::NotContained`] if there is no constraint with that version.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub enum Containment {
@@ -91,22 +92,6 @@ impl Vls {
         &self.constraints
     }
 
-    /// Return `true` if this specifier pins exactly one version,
-    /// i.e. it contains a single equal constraint [`Comparator::Equal`]
-    pub fn is_single_version(&self) -> bool {
-        self.constraints.len() == 1 && matches!(self.constraints[0].comparator(), Comparator::Equal)
-    }
-
-    /// Return the single version if this specifier describes exactly one version, otherwise `None`.
-    /// See [`Vls::is_single_version`] for details on what constitutes a single version.
-    pub fn get_single_version(&self) -> Option<&VersionString> {
-        if self.is_single_version() {
-            Some(self.constraints[0].version())
-        } else {
-            None
-        }
-    }
-
     /// Return the [`Containment`] of the given `version` in this specifier.
     ///
     /// Because the VERS type of a [`Vls`] is unspecified, order-based containment
@@ -124,10 +109,12 @@ impl Vls {
     /// If `version` does not exactly match any constraint's version, containment cannot be
     /// determined (the VERS type is unspecified), so this returns [`Containment::Undetermined`].
     ///
-    /// **Exception:** if this [`Vls`] pins a single version (see [`Vls::is_single_version`]), its
-    /// one [`Comparator::Equal`] constraint makes containment decidable via plain string equality
-    /// alone, so `version` always resolves to [`Containment::Contained`] or
-    /// [`Containment::NotContained`] — never [`Containment::Undetermined`].
+    /// The one exception is a [`Vls`] that uses only exact-match comparators (i.e.
+    /// [`Comparator::Equal`] and/or [`Comparator::NotEqual`]).
+    /// Here, containment is reduced to a plain string comparison and is always decidable,
+    /// regardless of VERS type. In that case, *any* queried version resolves to either [`Containment::Contained`] or
+    ///  [`Containment::NotContained`] depending on the exact-match comparator if there is a constraint with
+    /// the queried version, and always to [`Containment::NotContained`] if there is no constraint with that version.
     ///
     /// Note that a [`Vls`] cannot contain two constraints with the same version string (regardless
     /// of comparator), so at most one constraint can ever match `version` exactly.
@@ -147,33 +134,42 @@ impl Vls {
     /// assert_eq!(vls.contains("1.6.0"), Containment::Undetermined);
     /// assert_eq!(vls.contains("  1.0.0  "), Containment::Contained);
     ///
-    /// // A single pinned version is always decidable, even for versions that don't match.
-    /// let pinned: Vls = "1.0.0".parse().unwrap();
-    /// assert_eq!(pinned.contains("1.0.0"), Containment::Contained);
-    /// assert_eq!(pinned.contains("2.0.0"), Containment::NotContained);
     /// ```
     pub fn contains(&self, version: &str) -> Containment {
         let version = version.trim();
 
-        if self.is_single_version() {
-            return if self.constraints[0].version().as_str() == version {
-                Containment::Contained
-            } else {
-                Containment::NotContained
-            };
-        }
-
-        self.constraints
+        let is_enumerated = self
+            .constraints
             .iter()
-            .find(|c| c.version().as_str() == version)
-            .map_or(Containment::Undetermined, |c| match c.comparator() {
-                Comparator::Equal
-                | Comparator::GreaterThanOrEqual
-                | Comparator::LessThanOrEqual => Containment::Contained,
-                Comparator::NotEqual | Comparator::LessThan | Comparator::GreaterThan => {
-                    Containment::NotContained
-                }
-            })
+            .all(|c| matches!(c.comparator(), Comparator::Equal | Comparator::NotEqual));
+
+        if is_enumerated {
+            // there are only exact-match constraints, so we can determine containment based on whether the version is in the set of exact-match constraints
+            // if it's not, it is not contained
+            self.constraints
+                .iter()
+                .find(|c| c.version().as_str() == version)
+                .map_or(Containment::NotContained, |c| match c.comparator() {
+                    Comparator::Equal => Containment::Contained,
+                    Comparator::NotEqual => Containment::NotContained,
+                    _ => {
+                        unreachable!("is_enumerated guarantees only Equal or NotEqual comparators")
+                    }
+                })
+        } else {
+            // there is a range somewhere - we can only go off of exact matches
+            self.constraints
+                .iter()
+                .find(|c| c.version().as_str() == version)
+                .map_or(Containment::Undetermined, |c| match c.comparator() {
+                    Comparator::Equal
+                    | Comparator::GreaterThanOrEqual
+                    | Comparator::LessThanOrEqual => Containment::Contained,
+                    Comparator::NotEqual | Comparator::LessThan | Comparator::GreaterThan => {
+                        Containment::NotContained
+                    }
+                })
+        }
     }
 }
 
@@ -187,13 +183,6 @@ impl Vls {
     #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = parse))]
     pub fn wasm_parse(vls: &str) -> Result<Vls, VlsError> {
         vls.parse()
-    }
-
-    /// Return `true` if this specifier pins exactly one version, exposed as the
-    /// instance method `vls.isSingleVersion()` in JS.
-    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = isSingleVersion))]
-    pub fn wasm_is_single_version(&self) -> bool {
-        self.is_single_version()
     }
 
     /// Return the [`Containment`] of the given `version` in this specifier, exposed as the
@@ -268,6 +257,12 @@ impl FromStr for Vls {
         }
         if let Some(duplicate_versions) = duplicate_versions {
             return Err(VlsError::DuplicateConstraintVersions(duplicate_versions));
+        }
+
+        if constraints.len() == 1 && matches!(constraints[0].comparator(), Comparator::Equal) {
+            return Err(VlsError::SingleVersionNotAllowed(
+                constraints[0].version().to_string(),
+            ));
         }
 
         Ok(Self { constraints })
