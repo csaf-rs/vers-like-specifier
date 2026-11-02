@@ -49,7 +49,7 @@ assert_eq!(vls.contains("1.5.0"), Containment::Undetermined);
 // The one exception: a vls containing only exact-match comparators (equal, not equal) is always decidable, since
 // containment then reduces to a plain string comparison if there is a constraint with that version. If there isn't a
 // constraint with the version, it is not contained by default. 
-let exact_only: Vls = "1.0.0|!=2.0.0.parse().unwrap();
+let exact_only: Vls = "1.0.0|!=2.0.0".parse().unwrap();
 assert_eq!(exact_only.contains("1.0.0"), Containment::Contained);
 assert_eq!(exact_only.contains("2.0.0"), Containment::NotContained);
 assert_eq!(exact_only.contains("3.0.0"), Containment::NotContained);
