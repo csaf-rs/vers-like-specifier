@@ -35,7 +35,7 @@ impl Constraint {
 #[wasm_bindgen]
 impl Constraint {
     /// Construct a new [`Constraint`] from a [`Comparator`] and a version string, validating
-    /// the version string against the VLS grammar. Exposed as `new Constraint(comparator, version)`
+    /// the version string against the vls grammar. Exposed as `new Constraint(comparator, version)`
     /// in JS.
     ///
     /// # Errors
@@ -96,7 +96,7 @@ impl Display for Constraint {
     }
 }
 
-/// Errors specific to a single constraint within a VLS string.
+/// Errors specific to a single constraint within a vls string.
 #[derive(Error, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 pub enum ConstraintError {
