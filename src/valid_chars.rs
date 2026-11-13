@@ -17,7 +17,7 @@ impl VlsSpecialCharSet {
     /// Returns `true` if `ch` is an ASCII punctuation character allowed, unencoded, in this
     /// character set.
     ///
-    /// A VLS string may contain any printable ASCII punctuation character
+    /// A vls string may contain any printable ASCII punctuation character
     /// (`char::is_ascii_punctuation`), except for a handful reserved for grammar purposes:
     ///
     /// - For `VersionString`, the seven characters VERS reserves for `comparator`s and the `|`
@@ -25,7 +25,7 @@ impl VlsSpecialCharSet {
     ///   percent-encoded form; well-formed percent-encoded triplets are handled separately by
     ///   `collect_invalid_version_characters`.
     /// - For `ConstraintsString`, only `*` (the "any version" token, forbidden everywhere in a
-    ///   VLS string) is excluded; the other six reserved characters are allowed unconditionally
+    ///   vls string) is excluded; the other six reserved characters are allowed unconditionally
     ///   at this coarse level, since they form part of the `comparator` / `|` delimiter syntax.
     ///   Whether a literal, un-encoded occurrence of one of them is valid within a given version
     ///   string is checked later, at the version-string level.
@@ -43,7 +43,7 @@ impl VlsSpecialCharSet {
 /// Collects characters from `input` that are **not** ASCII-alphanumeric and **not** considered
 /// valid punctuation for `special_charset`, returning them sorted and deduplicated.
 ///
-/// Whitespace is always considered valid at this level, as it is permitted everywhere in a VLS
+/// Whitespace is always considered valid at this level, as it is permitted everywhere in a vls
 /// string except within a version string itself.
 ///
 /// For VersionString, validation is delegated to `collect_invalid_version_characters`, which

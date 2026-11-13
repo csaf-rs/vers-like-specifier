@@ -1,4 +1,4 @@
-//! WASM bindings for the vers-like-specifier library
+//! WASM bindings for the vls (VERS-like specifier) parser library
 //!
 //! This module provides WebAssembly bindings for the VERS-like specifier library, allowing it to be used in web applications.
 
