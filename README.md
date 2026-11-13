@@ -21,7 +21,7 @@ Add `vers-like-specifier` to your `Cargo.toml`. The package is published on http
 
 ```toml
 [dependencies]
-vers-like-specifier = "0.1"
+vers-like-specifier = "0.2"
 ```
 
 ## Usage
