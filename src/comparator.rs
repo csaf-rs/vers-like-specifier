@@ -51,7 +51,7 @@ impl Comparator {
     /// Contains the implicit "parsing order" of the comparators:
     /// * gte/lte comparators need to take precedence over the gt/lt comparators
     /// * implicit eq needs to come last / be the fallthrough
-    pub fn extract_comparator(constraint_str: &str) -> (Comparator, &str) {
+    pub(crate) fn extract_comparator(constraint_str: &str) -> (Comparator, &str) {
         if let Some(stripped) = constraint_str.strip_prefix(Comparator::GreaterThanOrEqual.as_ref())
         {
             (Comparator::GreaterThanOrEqual, stripped)
