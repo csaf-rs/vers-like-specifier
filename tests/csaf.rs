@@ -22,7 +22,9 @@ use vers_like_specifier::{ConstraintError, Vls, VlsError};
 #[case(">=4.2.0")]
 #[case("<1.2.0|>=4.2.0")]
 #[case(">2.4.0|<4.2.0")]
+#[case("<1.2.0|4.2.0")]
 #[case(">1.2.0|<2.1.0")]
+#[case(">2.1.0|!=3.16.0|<4.2.0")]
 fn parse_valid_csaf_version_strings(#[case] input: &str) {
     input
         .parse::<Vls>()
@@ -40,10 +42,6 @@ fn parse_valid_csaf_version_strings(#[case] input: &str) {
 #[case("all versions < v0.8.15", VlsError::InvalidConstraints(vec![ConstraintError::InvalidConstraintVersionCharacters(vec![' ', '<'])]))]
 // Intended, single versions are invalid
 #[case("4.2.0", VlsError::SingleVersionNotAllowed("4.2.0".to_owned()))]
-// This is from 6-2-49-13, typo was reported to TC TODO.
-#[case("<1.2.0|=4.2.0", VlsError::InvalidConstraints(vec![ConstraintError::InvalidConstraintVersionCharacters(vec!['='])]))]
-// This is 6-2-50-03-12, issue was reported to TC TODO.
-#[case(">2.1.0|<3.16.0|>3.16.0|<4.2.0", VlsError::DuplicateConstraintVersions(std::collections::BTreeSet::from(["3.16.0".to_owned()])))]
 fn parse_invalid_csaf_version_strings(#[case] input: &str, #[case] expected_error: VlsError) {
     assert_eq!(input.parse::<Vls>().unwrap_err(), expected_error);
 }
