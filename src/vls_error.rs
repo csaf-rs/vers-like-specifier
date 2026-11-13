@@ -14,16 +14,16 @@ pub enum VlsError {
     EmptyInput,
 
     /// The input is a wildcard (`*`), which is not allowed.
-    #[error("'*' (vers syntax for matching all versions) is not allowed as a vls string")]
+    #[error("'*' (VERS syntax for matching all versions) is not allowed as a vls string")]
     ForbiddenAnyUsed,
 
     /// The input contains a single version, which is not a valid vls.
     #[error("A single version '{0}' is not valid as a vls string")]
     SingleVersionNotAllowed(String),
 
-    /// The input contains characters not allowed by the VLS grammar.
+    /// The input contains characters not allowed by the vls grammar.
     /// See [`Vls`](crate::Vls) for more details on the grammar.
-    #[error("Invalid character(s) in VLS: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
+    #[error("Invalid character(s) in vls: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
     InvalidCharacters(Vec<char>),
 
     /// One or more constraints are invalid, for example due to constraints or version strings
