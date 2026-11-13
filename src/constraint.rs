@@ -15,12 +15,12 @@ pub struct Constraint {
 }
 
 impl Constraint {
-    /// Returns the comparator of this constraint.
-    pub fn comparator(&self) -> &Comparator {
-        &self.comparator
+    /// Returns the [`Comparator`] of this constraint.
+    pub fn comparator(&self) -> Comparator {
+        self.comparator
     }
 
-    /// Returns a reference to the [`VersionString`].
+    /// Returns a reference to the [`VersionString`] of this constraint.
     pub fn version(&self) -> &VersionString {
         &self.version
     }
