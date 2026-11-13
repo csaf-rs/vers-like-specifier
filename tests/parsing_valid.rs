@@ -25,6 +25,7 @@ fn parse_single_versioned_constraint(
     assert_eq!(cs.len(), 1);
     assert_eq!(*cs[0].comparator(), expected_cmp);
     assert_eq!(cs[0].version().as_str(), expected_ver);
+    assert_eq!(cs[0].version_str(), expected_ver);
 }
 
 #[rstest]
@@ -70,7 +71,7 @@ fn parse_percent_encoded_characters_in_version(
     let cs = v.constraints();
     assert_eq!(cs.len(), 1);
     assert_eq!(
-        cs[0].version().as_str(),
+        cs[0].version_str(),
         expected_version.trim_start_matches("!=")
     );
     assert_eq!(v.to_string(), input);
@@ -87,16 +88,16 @@ fn parse_multiple_constraints() {
     assert_eq!(cs.len(), 4);
 
     assert_eq!(*cs[0].comparator(), Comparator::GreaterThan);
-    assert_eq!(cs[0].version().as_str(), "10.9a");
+    assert_eq!(cs[0].version_str(), "10.9a");
 
     assert_eq!(*cs[1].comparator(), Comparator::NotEqual);
-    assert_eq!(cs[1].version().as_str(), "10.9c");
+    assert_eq!(cs[1].version_str(), "10.9c");
 
     assert_eq!(*cs[2].comparator(), Comparator::NotEqual);
-    assert_eq!(cs[2].version().as_str(), "10.9f");
+    assert_eq!(cs[2].version_str(), "10.9f");
 
     assert_eq!(*cs[3].comparator(), Comparator::LessThanOrEqual);
-    assert_eq!(cs[3].version().as_str(), "10.9k");
+    assert_eq!(cs[3].version_str(), "10.9k");
 
     assert_eq!(v.to_string(), input);
 }

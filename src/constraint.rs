@@ -24,6 +24,11 @@ impl Constraint {
     pub fn version(&self) -> &VersionString {
         &self.version
     }
+
+    /// Returns the [`VersionString`] as a string slice.
+    pub fn version_str(&self) -> &str {
+        self.version.as_str()
+    }
 }
 
 #[cfg(feature = "wasm")]
