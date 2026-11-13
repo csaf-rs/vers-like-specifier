@@ -35,9 +35,9 @@ assert_eq!(vls.to_string(), ">=1.0.0|<2.0.0");
 
 
 let constraints = vls.constraints();
-assert_eq!(constraints[0].comparator(), &Comparator::GreaterThanOrEqual);
+assert_eq!(constraints[0].comparator(), Comparator::GreaterThanOrEqual);
 assert_eq!(constraints[0].version().to_string(), "1.0.0");
-assert_eq!(constraints[1].comparator(), &Comparator::LessThan);
+assert_eq!(constraints[1].comparator(), Comparator::LessThan);
 assert_eq!(constraints[1].version().to_string(), "2.0.0");
 
 // Because the VERS type is unknown, `contains` can only resolve a definite
