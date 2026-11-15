@@ -3,11 +3,11 @@ use strum::AsRefStr;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
-/// Comparators for vls constraints
+/// A [`Comparator`] for a vls [`Constraint`](crate::Constraint)
 ///
 /// This enum represents the different types of comparators that can be used
-/// in constraints. Each comparator defines how a version is compared
-/// to the constraint version.
+/// in constraints. The comparator defines how a version is compared
+/// to the constraints [`VersionString`](crate::VersionString).
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, AsRefStr, serde::Serialize, serde::Deserialize,
 )]
