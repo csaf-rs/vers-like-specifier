@@ -71,3 +71,44 @@ impl Comparator {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    use super::Comparator;
+
+    #[rstest]
+    // "good" cases
+    #[case::extract_gte(">=1.2.3", Comparator::GreaterThanOrEqual, "1.2.3")]
+    #[case::extract_lte("<=1.2.3", Comparator::LessThanOrEqual, "1.2.3")]
+    #[case::extract_ne("!=1.2.3", Comparator::NotEqual, "1.2.3")]
+    #[case::extract_gt(">1.2.3", Comparator::GreaterThan, "1.2.3")]
+    #[case::extract_lt("<1.2.3", Comparator::LessThan, "1.2.3")]
+    #[case::extract_eq("1.2.3", Comparator::Equal, "1.2.3")]
+    // "bad" cases (comparator chars in version string)
+    #[case::double_lt_equal("<<=1.2.3", Comparator::LessThan, "<=1.2.3")]
+    #[case::double_gt_equal(">>=1.2.3", Comparator::GreaterThan, ">=1.2.3")]
+    #[case::double_ne("!==1.2.3", Comparator::NotEqual, "=1.2.3")]
+    #[case::double_lt("<<1.2.3", Comparator::LessThan, "<1.2.3")]
+    #[case::double_gt(">>1.2.3", Comparator::GreaterThan, ">1.2.3")]
+    #[case::double_explicit_eq("==1.2.3", Comparator::Equal, "==1.2.3")]
+    #[case::single_explicit_eq("=1.2.3", Comparator::Equal, "=1.2.3")]
+    // "bad" cases (only comparators, empty version string)
+    #[case::gte_no_version(">=", Comparator::GreaterThanOrEqual, "")]
+    #[case::lte_no_version("<=", Comparator::LessThanOrEqual, "")]
+    #[case::ne_no_version("!=", Comparator::NotEqual, "")]
+    #[case::gt_no_version(">", Comparator::GreaterThan, "")]
+    #[case::lt_no_version("<", Comparator::LessThan, "")]
+    #[case::eq_no_version("", Comparator::Equal, "")]
+    fn extracts_comparator_and_remaining_version(
+        #[case] constraint: &str,
+        #[case] expected_comparator: Comparator,
+        #[case] expected_version: &str,
+    ) {
+        assert_eq!(
+            Comparator::extract_comparator(constraint),
+            (expected_comparator, expected_version)
+        );
+    }
+}
