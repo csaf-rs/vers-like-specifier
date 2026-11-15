@@ -1,6 +1,3 @@
-//! The `Comparator` enum represents the different types of comparators that can be used
-//! in constraints.
-
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use strum::AsRefStr;
 #[cfg(feature = "wasm")]
