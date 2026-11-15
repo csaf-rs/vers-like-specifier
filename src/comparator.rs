@@ -1,5 +1,3 @@
-//! Comparator type for the csaf-rs/vls library.
-//!
 //! The `Comparator` enum represents the different types of comparators that can be used
 //! in constraints.
 
@@ -8,7 +6,7 @@ use strum::AsRefStr;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
-/// Comparator for constraints.
+/// Comparators for vls constraints
 ///
 /// This enum represents the different types of comparators that can be used
 /// in constraints. Each comparator defines how a version is compared
