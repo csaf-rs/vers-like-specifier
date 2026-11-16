@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 ///
 /// This enum represents the different types of comparators that can be used
 /// in constraints. The comparator defines how a version is compared
-/// to the constraints [`VersionString`](crate::VersionString).
+/// to the constraint's [`VersionString`](crate::VersionString).
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, AsRefStr, serde::Serialize, serde::Deserialize,
 )]
