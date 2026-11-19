@@ -57,6 +57,8 @@ assert_eq!(exact_only.contains("3.0.0"), Containment::NotContained);
 
 ### JavaScript / WASM Usage
 
+Call `init()` once before using the library. In browsers it loads the wasm module; in Node.js it returns immediately, because the module is already loaded on import.
+
 ```js
 import init, { Vls, Constraint, Comparator, Containment } from "@csaf-rs/vers-like-specifier";
 
