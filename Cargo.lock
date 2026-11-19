@@ -775,7 +775,7 @@ checksum = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
 
 [[package]]
 name = "vers-like-specifier"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "console_error_panic_hook",
  "criterion",
@@ -783,7 +783,6 @@ dependencies = [
  "rstest",
  "serde",
  "serde-wasm-bindgen",
- "serde_json",
  "strum",
  "thiserror",
  "tsify",
