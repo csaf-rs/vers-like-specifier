@@ -76,6 +76,14 @@ jobs:
       - name: Run wasm tests
         if: matrix.version == needs.prepare.outputs.stable-version
         run: wasm-pack test --node -- --features wasm
+      - name: Set up Node.js
+        if: matrix.version == needs.prepare.outputs.stable-version
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Build npm package
+        if: matrix.version == needs.prepare.outputs.stable-version
+        uses: csaf-rs/shared-workflows/.github/actions/wasm-npm-package@fa264d0e39f0427b66a04fd587c664adad909334
 
   publish-crates:
     permissions:
@@ -89,7 +97,7 @@ jobs:
 
   publish-npm:
     runs-on: ubuntu-latest
-    environment: release    
+    environment: release
     permissions:
       contents: read
       id-token: write
@@ -105,10 +113,8 @@ jobs:
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
-      - name: Build WASM bindings
-        run: |
-          cargo install wasm-pack --locked
-          wasm-pack build --target web --out-dir pkg --scope csaf-rs -- --features wasm
+      - name: Build npm package
+        uses: csaf-rs/shared-workflows/.github/actions/wasm-npm-package@fa264d0e39f0427b66a04fd587c664adad909334
       - name: Publish to NPM
         working-directory: ./pkg
         run: |
