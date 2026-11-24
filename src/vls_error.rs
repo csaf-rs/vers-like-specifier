@@ -6,7 +6,7 @@ use thiserror::Error;
 use {js_sys::Error as JsError, wasm_bindgen::JsValue};
 
 /// Errors that can occur when parsing a vls string.
-#[derive(Error, Debug, PartialEq, Eq)]
+#[derive(Error, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 pub enum VlsError {
     /// The input string was empty.
