@@ -23,7 +23,7 @@ pub enum VlsError {
 
     /// The input contains characters not allowed by the vls grammar.
     /// See [`Vls`](crate::Vls) for more details on the grammar.
-    #[error("Invalid character(s) in vls: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
+    #[error("Invalid character(s) in vls: {}", crate::valid_chars::format_invalid_characters(.0))]
     InvalidCharacters(Vec<char>),
 
     /// One or more constraints are invalid, for example due to constraints or version strings

@@ -40,6 +40,21 @@ impl VlsSpecialCharSet {
     }
 }
 
+/// Formats invalid characters as a comma-separated list of quoted, escaped characters,
+/// e.g. `'a', '\n'`.
+pub fn format_invalid_characters(chars: &[char]) -> String {
+    let mut out = String::with_capacity(chars.len() * 4);
+    for (i, c) in chars.iter().enumerate() {
+        if i > 0 {
+            out.push_str(", ");
+        }
+        out.push('\'');
+        out.extend(c.escape_default());
+        out.push('\'');
+    }
+    out
+}
+
 /// Collects characters from `input` that are **not** ASCII-alphanumeric and **not** considered
 /// valid punctuation for `special_charset`, returning them sorted and deduplicated.
 ///

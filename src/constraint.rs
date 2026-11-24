@@ -110,7 +110,7 @@ pub enum ConstraintError {
 
     /// The version string contains characters outside the allowed grammar.
     /// See [`Vls`](crate::Vls) for more details on the grammar.
-    #[error("Invalid character(s) in version string: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
+    #[error("Invalid character(s) in version string: {}", crate::valid_chars::format_invalid_characters(.0))]
     InvalidConstraintVersionCharacters(Vec<char>),
 }
 
