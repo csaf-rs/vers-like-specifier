@@ -79,6 +79,16 @@ try {
 }
 ```
 
+## Benchmarks
+
+Parsing benchmarks use [Criterion](https://github.com/bheisler/criterion.rs):
+
+```sh
+cargo bench
+```
+
+The `vls_parse` group measures parsing throughput for 100 to 100,000 constraints.
+
 ## License
 
 Licensed under the [Apache License, Version 2.0](LICENSE).
