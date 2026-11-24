@@ -180,14 +180,14 @@ impl Vls {
     ///
     /// # Errors
     /// Throws a JS `Error` if `vls` is not a valid VERS-like specifier.
-    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = parse))]
+    #[wasm_bindgen(js_name = parse)]
     pub fn wasm_parse(vls: &str) -> Result<Vls, VlsError> {
         vls.parse()
     }
 
     /// Return the [`Containment`] of the given `version` in this specifier, exposed as the
     /// instance method `vls.contains(version)` in JS.
-    #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = contains))]
+    #[wasm_bindgen(js_name = contains)]
     pub fn wasm_contains(&self, version: &str) -> Containment {
         self.contains(version)
     }
