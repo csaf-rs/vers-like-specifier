@@ -10,6 +10,7 @@ keywords = ["vls", "vers-like", "purl", "vers", "parser"]
 categories = ["parser-implementations"]
 rust-version = "1.88.0"
 publish = true
+exclude = ["/.github"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
