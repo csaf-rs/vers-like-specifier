@@ -40,7 +40,7 @@ impl Constraint {
     ///
     /// # Errors
     /// Throws a JS `Error` if `version` is empty or contains characters outside the grammar.
-    #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
+    #[wasm_bindgen(constructor)]
     pub fn wasm_new(comparator: Comparator, version: &str) -> Result<Constraint, ConstraintError> {
         Ok(Constraint {
             comparator,
@@ -49,13 +49,13 @@ impl Constraint {
     }
 
     /// Returns the comparator of this constraint, exposed as `constraint.comparator` in JS.
-    #[cfg_attr(feature = "wasm", wasm_bindgen(getter, js_name = comparator))]
+    #[wasm_bindgen(getter, js_name = comparator)]
     pub fn wasm_comparator(&self) -> Comparator {
         self.comparator
     }
 
     /// Returns the version string of this constraint, exposed as `constraint.version` in JS.
-    #[cfg_attr(feature = "wasm", wasm_bindgen(getter, js_name = version))]
+    #[wasm_bindgen(getter, js_name = version)]
     pub fn wasm_version(&self) -> String {
         self.version.to_string()
     }
