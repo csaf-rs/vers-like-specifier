@@ -191,6 +191,18 @@ impl Vls {
     pub fn wasm_contains(&self, version: &str) -> Containment {
         self.contains(version)
     }
+
+    /// Return the constraints, exposed as the `vls.constraints` getter in JS.
+    #[wasm_bindgen(getter, js_name = constraints)]
+    pub fn wasm_constraints(&self) -> Vec<Constraint> {
+        self.constraints.clone()
+    }
+
+    /// Return the canonical vls string, exposed as `vls.toString()` in JS.
+    #[wasm_bindgen(js_name = toString)]
+    pub fn wasm_to_string(&self) -> String {
+        self.to_string()
+    }
 }
 
 impl FromStr for Vls {
