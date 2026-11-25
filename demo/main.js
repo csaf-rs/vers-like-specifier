@@ -4,6 +4,9 @@ await init();
 
 document.querySelectorAll("button:disabled").forEach((button) => (button.disabled = false));
 
+const pkg = await (await fetch("./pkg/package.json")).json();
+document.getElementById("version-info").textContent = `Using ${pkg.name} ${pkg.version} (WASM build).`;
+
 const parseForm = document.getElementById("parse-form");
 const parseOut = document.getElementById("parse-output");
 const parseErrorOut = document.getElementById("parse-error");
