@@ -10,7 +10,6 @@ use wasm_bindgen::prelude::wasm_bindgen;
 /// A `VersionString` is guaranteed to be non-empty and to contain only characters
 /// allowed by the version-string grammar. See [`Vls`](crate::Vls) for more details on the grammar.
 #[derive(Clone, PartialEq, Eq, Debug, Hash, serde::Serialize, serde::Deserialize)]
-#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub struct VersionString(String);
 
