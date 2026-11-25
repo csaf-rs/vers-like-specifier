@@ -145,3 +145,23 @@ fn collect_invalid_version_characters(input: &str) -> Option<Vec<char>> {
     invalid.dedup();
     Some(invalid)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::format_invalid_characters;
+    use rstest::rstest;
+
+    #[rstest]
+    #[case::empty(&[], "")]
+    #[case::single_char(&['>'], "'>'")]
+    #[case::whitespace(&[' '], "' '")]
+    #[case::multiple_chars_comma_separated(&['a', 'b', 'c'], "'a', 'b', 'c'")]
+    #[case::preserves_input_order(&['z', 'a'], "'z', 'a'")]
+    #[case::escapes_control_characters(&['\n', '\t'], r"'\n', '\t'")]
+    #[case::escapes_quote_and_backslash(&['\'', '\\'], r"'\'', '\\'")]
+    #[case::escapes_non_ascii_as_unicode(&['é'], r"'\u{e9}'")]
+    #[case::unicode_whitespace(&['\u{a0}', '\u{3000}'], r"'\u{a0}', '\u{3000}'")]
+    fn test_format_invalid_characters(#[case] chars: &[char], #[case] expected: &str) {
+        assert_eq!(format_invalid_characters(chars), expected);
+    }
+}
