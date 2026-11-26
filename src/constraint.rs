@@ -54,10 +54,10 @@ impl Constraint {
         self.comparator
     }
 
-    /// Returns the version string of this constraint, exposed as `constraint.version` in JS.
+    /// Returns the [`VersionString`] of this constraint, exposed as `constraint.version` in JS.
     #[wasm_bindgen(getter, js_name = version)]
-    pub fn wasm_version(&self) -> String {
-        self.version.to_string()
+    pub fn wasm_version(&self) -> VersionString {
+        self.version.clone()
     }
 }
 

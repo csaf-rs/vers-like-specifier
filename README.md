@@ -66,7 +66,7 @@ await init();
 
 const vls = Vls.parse(">=1.0.0|<2.0.0");
 const constraint = new Constraint(Comparator.GreaterThanOrEqual, "1.0.0");
-console.log(constraint.version); // "1.0.0"
+console.log(constraint.version.toString()); // "1.0.0"
 
 console.log(vls.contains("1.0.0") === Containment.Contained); // true (matches the >= constraint exactly)
 console.log(vls.contains("2.0.0") === Containment.NotContained); // true (2.0.0 < 2.0.0 is always false)
