@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>vers-like-specifier playground</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>vers-like-specifier playground</h1>
+      <aside class="info">
+        Please be aware that vls is a fallback option and SHOULD NOT be used unless really necessary. Please consider using
+        <a href="https://github.com/package-url/vers-spec" target="_blank" rel="noopener">vers</a>.
+      </aside>
+      <hr />
+
+      <section>
+        <h2>Try parsing a vls string:</h2>
+        <form id="parse-form">
+          <label>
+            vls
+            <input id="parse-vls" value=">=1.0.0|<2.0.0" size="40" />
+          </label>
+          <p id="parse-error" class="output error"></p>
+          <button type="submit" disabled>Parse</button>
+        </form>
+        <div id="parse-output" class="output result"></div>
+      </section>
+
+      <section>
+        <h2>Check if a vls contains a version:</h2>
+        <form id="check-form">
+          <label>
+            vls
+            <input id="check-vls" value=">=1.0.0|<2.0.0" size="40" />
+          </label>
+          <p id="check-error" class="output error"></p>
+          <label>
+            version
+            <input id="check-version" value="1.5.0" size="20" />
+          </label>
+          <button type="submit" disabled>Check</button>
+        </form>
+        <p id="check-output" class="output result"></p>
+      </section>
+
+      <hr />
+      <aside class="info neutral" id="version-info">Loading library version…</aside>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

@@ -79,6 +79,22 @@ try {
 }
 ```
 
+## Browser Playground
+
+The demo folder contains a minimal browser page that uses the WASM build to parse a vls string and check whether a version is contained in it. A live version is published at https://csaf-rs.github.io/vls/.
+
+### Run it locally
+
+Requires [`wasm-pack`](https://rustwasm.github.io/wasm-pack/installer/) and the `wasm32-unknown-unknown` target (`rustup target add wasm32-unknown-unknown`).
+
+From the repository root:
+
+```sh
+demo/run.sh
+```
+
+This builds the WASM package and serves the demo at http://localhost:8080. To use another port, set `PORT`, for example `PORT=9000 demo/run.sh`.
+
 ## Benchmarks
 
 Parsing benchmarks use [Criterion](https://github.com/bheisler/criterion.rs):
